@@ -1,30 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GZipTest
 {
     class Program
     {
-        const long blockSize = 1000;
+        const long BLOCK_SIZE = 1;
 
         static void Main(string[] args)
         {
-            int cores = Environment.ProcessorCount;
+            var totalTime = new Stopwatch();
 
-            Thread BlockReader = new Thread(_ => {});
-            Thread[] Workers = new Thread[cores];
-            Thread BlockWriter = new Thread(_ => {});
+            Console.WriteLine($"Block size set to {BLOCK_SIZE} bytes.");
+            Console.WriteLine($"Starting {Environment.ProcessorCount} compression threads.");
 
-            var readQueue = new SafeQueue();
-            for (int i = 0; i < cores; i++)
+            totalTime.Start();
+            Compress();
+
+            Console.WriteLine($"TOTAL PROCESSING TIME: {totalTime.ElapsedMilliseconds} ms.");
+            Console.ReadKey();
+        }
+
+        private static void Compress()
+        {
+            var unusedSourceBlocks = new BlockQueue();
+            var filledSourceBlocks = new BlockQueue();
+            var destinationBlocks = new BlockDictionary();
+            long totalBlocks = -1;
+            var inputStream = new MemoryStream(Enumerable.Range(0, 255).Select(x => (byte)x).ToArray());
+            new Thread(_ => new BlockReader().FillQueue(unusedSourceBlocks, filledSourceBlocks, inputStream, ref totalBlocks)).Start();
+
+            for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                Workers[i] = new Thread(_ => { });
+                unusedSourceBlocks.Enqueue(new DataBlock(BLOCK_SIZE));
+                unusedSourceBlocks.Enqueue(new DataBlock(BLOCK_SIZE));
+                new Thread(_ => new GZipWorker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks)).Start();
             }
 
+            var b = new BlockWriter();
+            b.WriteToStream(destinationBlocks, new MemoryStream(), true, ref totalBlocks);
         }
     }
 }

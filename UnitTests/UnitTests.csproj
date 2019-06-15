@@ -8,8 +8,8 @@
     <ProjectGuid>{955510DF-4E75-4113-B0CE-1432D2FD4DBA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnitTestProject1</RootNamespace>
-    <AssemblyName>UnitTestProject1</AssemblyName>
+    <RootNamespace>UnitTests</RootNamespace>
+    <AssemblyName>UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -49,9 +49,11 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockDictionaryTests.cs" />
     <Compile Include="BlockReaderTests.cs" />
+    <Compile Include="GZipWorkerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SafeQueueTests.cs" />
+    <Compile Include="BlockQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

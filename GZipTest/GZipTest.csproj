@@ -43,13 +43,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockDictionary.cs" />
+    <Compile Include="BlockQueue.cs" />
     <Compile Include="BlockReader.cs" />
+    <Compile Include="BlockWriter.cs" />
     <Compile Include="DataBlock.cs" />
+    <Compile Include="GZipWorker.cs" />
+    <Compile Include="IBlockDictionary.cs" />
+    <Compile Include="IBlockQueue.cs" />
     <Compile Include="IBlockReader.cs" />
-    <Compile Include="ISafeQueue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SafeQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
