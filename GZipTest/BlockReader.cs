@@ -6,7 +6,7 @@ namespace GZipTest
 {
     public class BlockReader : IBlockReader
     {
-        public void FillQueue(IBlockQueue queueEmpty, IBlockQueue queueFilled, Stream stream, ref long totalBlocks)
+        public void FillQueue(IBlockQueue queueEmpty, IBlockQueue queueFilled, Stream stream, ref long totalBlocks, ref long totalBytesRead)
         {
             Console.WriteLine($"[Thread R {Environment.CurrentManagedThreadId}] Reading started.");
             long counter = 0;
@@ -25,6 +25,7 @@ namespace GZipTest
                     bytesRead = stream.Read(block.Data, 0, block.Data.Length);
                     if (bytesRead == 0) break;
                     block.Size = bytesRead;
+                    totalBytesRead += bytesRead;
                     block.SequenceNr = counter++;
                     readTime.Stop();
                     enqueueTime.Start();

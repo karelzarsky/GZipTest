@@ -31,6 +31,8 @@ namespace GZipTest
                     counter++;
                 }
             }
+            destination.Close();
+            destination.Dispose();
             Console.WriteLine($"[Thread W {Environment.CurrentManagedThreadId}] Writing {counter} blocks took {writeTime.ElapsedMilliseconds} ms.");
         }
     }

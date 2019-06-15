@@ -4,6 +4,6 @@ namespace GZipTest
 {
     public interface IBlockReader
     {
-        void FillQueue(IBlockQueue queueEmpty, IBlockQueue queueFiled, Stream stream, ref long totalBlocks);
+        void FillQueue(IBlockQueue queueEmpty, IBlockQueue queueFiled, Stream stream, ref long totalBlocks, ref long totalBytesRead);
     }
 }

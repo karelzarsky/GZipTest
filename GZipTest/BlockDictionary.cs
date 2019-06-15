@@ -12,8 +12,12 @@ namespace GZipTest
             Monitor.Enter(this);
             try
             {
+                while (dictionary.Count > 20)
+                {
+                    Monitor.Wait(this);
+                }
                 dictionary.Add(block.SequenceNr, block);
-                Monitor.Pulse(this);
+                Monitor.PulseAll(this);
             }
             finally
             {
@@ -31,8 +35,9 @@ namespace GZipTest
                 {
                     Monitor.Wait(this, timeout);
                 }
-                dictionary.TryGetValue(key, out block);
-                return dictionary.Remove(key);
+                bool res = dictionary.TryGetValue(key, out block) && dictionary.Remove(key);
+                Monitor.PulseAll(this);
+                return res;
             }
             finally
             {
