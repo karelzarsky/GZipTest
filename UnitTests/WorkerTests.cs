@@ -5,7 +5,7 @@ using GZipTest;
 namespace UnitTests
 {
     [TestClass]
-    public class GZipWorkerTests
+    public class WorkerTests
     {
         [TestMethod]
         public void CompressOneBlock_SequentionalArray_ReturnsLargeResult()

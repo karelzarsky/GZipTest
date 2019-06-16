@@ -8,7 +8,7 @@ namespace GZipTest
         private readonly Dictionary<long, DataBlock> dictionary = new Dictionary<long, DataBlock>();
         private long lastRetreivedKey = -1;
 
-        public int MaximumCapacity { get; set; } = 999;
+        public int MaximumCapacity { get; set; } = int.MaxValue;
 
         public void Add(DataBlock block)
         {

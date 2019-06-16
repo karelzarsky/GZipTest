@@ -17,14 +17,12 @@ namespace GZipTest
                 if (kernel.Get<IArgumentsParser>().ParseArguments(args, out string error, out bool compress, out Stream inputStream, out Stream outputStream))
                 {
                     stats.WriteStartMessages();
-                    kernel.Get<IThreadsCreator>().StartThreads(
-                        inputStream: inputStream,
-                        outputStream: outputStream,
-                        stats: stats,
+                    kernel.Get<IThreadsCreator>().StartThreads(inputStream, outputStream, stats,
                         unusedSourceBlocks: kernel.Get<IBlockQueue>(),
                         filledSourceBlocks: kernel.Get<IBlockQueue>(),
                         blockReader: kernel.Get<IBlockReader>(),
-                        blockWriter: kernel.Get<IBlockWriter>());
+                        blockWriter: kernel.Get<IBlockWriter>(),
+                        outputBuffer: kernel.Get < IBlockDictionary>());
                     stats.WriteEndStatistics();
                     return 0;
                 }

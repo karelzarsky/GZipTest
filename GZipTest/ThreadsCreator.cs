@@ -6,19 +6,29 @@ namespace GZipTest
 {
     public class ThreadsCreator : IThreadsCreator
     {
-        public void StartThreads(Stream inputStream, Stream outputStream, IStatistics stats, IBlockQueue unusedSourceBlocks, IBlockQueue filledSourceBlocks, IBlockReader blockReader, IBlockWriter blockWriter)
+        public void StartThreads(
+            Stream inputStream, 
+            Stream outputStream, 
+            IStatistics stats, 
+            IBlockQueue unusedSourceBlocks, 
+            IBlockQueue filledSourceBlocks, 
+            IBlockReader blockReader, 
+            IBlockWriter blockWriter,
+            IBlockDictionary outputBuffer)
         {
-            var destinationBlocks = new BlockDictionary() {MaximumCapacity = stats.WorkerThreads * 4 };
+            // Reading
             long totalBlocks = -1;
-            var readerThread = new Thread(_ => blockReader.FillQueue(unusedSourceBlocks, filledSourceBlocks, inputStream, ref totalBlocks, stats))
-            { Name = "Reader" };
+            var readerThread = new Thread(_ => blockReader.FillQueue(unusedSourceBlocks, filledSourceBlocks, inputStream, ref totalBlocks, stats)) { Name = "Reader" };
             readerThread.Start();
+
+            // Processing
+            outputBuffer.MaximumCapacity = stats.WorkerThreads * 4;
             var workers = new List<Thread>();
             for (int i = 0; i < stats.WorkerThreads; i++)
             {
                 unusedSourceBlocks.Enqueue(new DataBlock(stats.BlockSizeBytes));
                 unusedSourceBlocks.Enqueue(new DataBlock(stats.BlockSizeBytes));
-                var worker = new Thread(_ => new Worker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks, stats))
+                var worker = new Thread(_ => new Worker().DoCompression(filledSourceBlocks, unusedSourceBlocks, outputBuffer, ref totalBlocks, stats))
                 {
                     Name = $"Worker {i}",
                     Priority = ThreadPriority.BelowNormal
@@ -26,7 +36,10 @@ namespace GZipTest
                 workers.Add(worker);
                 worker.Start();
             }
-            blockWriter.WriteToStream(destinationBlocks, outputStream, true, ref totalBlocks, stats);
+
+            // Writing
+            blockWriter.WriteToStream(outputBuffer, outputStream, true, ref totalBlocks, stats);
+
             readerThread.Join();
             workers.ForEach(x => x.Join());
         }

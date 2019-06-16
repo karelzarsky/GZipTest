@@ -5,15 +5,13 @@ namespace GZipTest
 {
     public class BlockWriter : IBlockWriter
     {
-        const int DICTIONARY_TIMEOUT = 100;
-
         public void WriteToStream(IBlockDictionary source, Stream destination, bool includeBlockHeader, ref long totalBlocks, IStatistics stats)
         {
             long counter = 0;
             BinaryFormatter formatter = new BinaryFormatter();
             while (counter != totalBlocks)
             {
-                if (source.TryRetrive(counter, out DataBlock block, DICTIONARY_TIMEOUT))
+                if (source.TryRetrive(counter, out DataBlock block, stats.MonitorTimeoutMilliseconds))
                 {
                     if (includeBlockHeader)
                     {
@@ -29,7 +27,6 @@ namespace GZipTest
                 stats.WriteEarlyStatistics();
             }
             destination.Close();
-            destination.Dispose();
         }
     }
 }
