@@ -26,7 +26,7 @@ namespace GZipTest
                     stats.DiskWriteTime.Stop();
                     counter++;
                 }
-                stats.WriteIntrermediateStatistics();
+                stats.WriteEarlyStatistics();
             }
             destination.Close();
             destination.Dispose();

@@ -10,14 +10,14 @@ namespace GZipTest
         Stopwatch DiskWriteTime { get; set; }
         long InputWaitMilliseconds { get; set; }
         long OutputWaitMilliseconds { get; set; }
-        int TimeoutMilliseconds { get; }
+        int MonitorTimeoutMilliseconds { get; }
         long TotalBytesRead { get; set; }
         long TotalBytesWritten { get; set; }
         Stopwatch TotalTime { get; set; }
         int WorkerThreads { get; set; }
 
         void WriteEndStatistics();
-        void WriteIntrermediateStatistics();
+        void WriteEarlyStatistics();
         void WriteStartMessages();
     }
 }

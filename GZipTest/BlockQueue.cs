@@ -36,6 +36,7 @@ namespace GZipTest
                     if (queue.Count > 0)
                     {
                         block = queue.Dequeue();
+                        Monitor.Pulse(this);
                         return true;
                     }
                     else

@@ -10,7 +10,7 @@ namespace UnitTests
         [TestMethod]
         public void CompressOneBlock_SequentionalArray_ReturnsLargeResult()
         {
-            var sut = new GZipWorker();
+            var sut = new Worker();
             byte[] array = Enumerable.Range(0, 255).Select(x => (byte)x).ToArray();
             var db = new DataBlock(array, 1);
 
@@ -23,7 +23,7 @@ namespace UnitTests
         [TestMethod]
         public void CompressOneBlock_ArrayOfZeroes_ReturnsSmallResult()
         {
-            var sut = new GZipWorker();
+            var sut = new Worker();
             byte[] array = new byte[255];
             var db = new DataBlock(array, 1);
 

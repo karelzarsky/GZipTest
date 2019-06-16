@@ -18,7 +18,7 @@ namespace GZipTest
             {
                 unusedSourceBlocks.Enqueue(new DataBlock(stats.BlockSizeBytes));
                 unusedSourceBlocks.Enqueue(new DataBlock(stats.BlockSizeBytes));
-                var worker = new Thread(_ => new GZipWorker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks, stats))
+                var worker = new Thread(_ => new Worker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks, stats))
                 {
                     Name = $"Worker {i}",
                     Priority = ThreadPriority.BelowNormal

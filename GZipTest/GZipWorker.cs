@@ -4,7 +4,7 @@ using System.IO.Compression;
 
 namespace GZipTest
 {
-    public class GZipWorker : IGZipWorker
+    public class Worker : IWorker
     {
         long totalBytes = 0L;
         Stopwatch compressionTime = new Stopwatch();
@@ -16,7 +16,7 @@ namespace GZipTest
             while (totalBlocks == -1 || !source.Empty())
             {
                 inputWaitTime.Start();
-                if (source.TryDequeue(out DataBlock block, stats.TimeoutMilliseconds))
+                if (source.TryDequeue(out DataBlock block, stats.MonitorTimeoutMilliseconds))
                 {
                     inputWaitTime.Stop();
                     compressionTime.Start();
