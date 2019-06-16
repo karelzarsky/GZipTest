@@ -1,6 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GZipTest;
-using System.IO;
 
 namespace UnitTests
 {

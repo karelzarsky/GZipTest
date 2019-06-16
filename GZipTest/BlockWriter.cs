@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GZipTest
@@ -9,12 +7,10 @@ namespace GZipTest
     {
         const int DICTIONARY_TIMEOUT = 100;
 
-        public void WriteToStream(IBlockDictionary source, Stream destination, bool includeBlockHeader, ref long totalBlocks)
+        public void WriteToStream(IBlockDictionary source, Stream destination, bool includeBlockHeader, ref long totalBlocks, Statistics stat)
         {
-            Console.WriteLine($"[Thread W {Environment.CurrentManagedThreadId}] Writing started.");
             long counter = 0;
             BinaryFormatter formatter = new BinaryFormatter();
-            var writeTime = new Stopwatch();
             while (counter != totalBlocks)
             {
                 if (source.TryRetrive(counter, out DataBlock block, DICTIONARY_TIMEOUT))
@@ -24,16 +20,15 @@ namespace GZipTest
                         formatter.Serialize(destination, block.SequenceNr);
                         formatter.Serialize(destination, block.Size);
                     }
-                    writeTime.Start();
+                    stat.totalBytesWritten += block.Size;
+                    stat.diskWriteTime.Start();
                     destination.Write(block.Data, 0, block.Size);
-                    writeTime.Stop();
-                    //Console.WriteLine($"[Thread W {Environment.CurrentManagedThreadId}] Written block {block.SequenceNr}.");
+                    stat.diskWriteTime.Stop();
                     counter++;
                 }
             }
             destination.Close();
             destination.Dispose();
-            Console.WriteLine($"[Thread W {Environment.CurrentManagedThreadId}] Writing {counter} blocks took {writeTime.ElapsedMilliseconds} ms.");
         }
     }
 }

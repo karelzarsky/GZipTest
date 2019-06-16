@@ -7,38 +7,39 @@ namespace GZipTest
 {
     public class GZipWorker
     {
-        const int QUEUE_TIMEOUT = 100;
-
-        public void DoCompression(IBlockQueue source, IBlockQueue used, IBlockDictionary writeDictionary, ref long totalBlocks)
+        public void DoCompression(IBlockQueue source, IBlockQueue used, IBlockDictionary writeDictionary, ref long totalBlocks, Statistics stat)
         {
-            Console.WriteLine($"[Thread C {Environment.CurrentManagedThreadId}] Compression thread started.");
-
-            var dequeueTime = new Stopwatch();
+            var inputWaitTime = new Stopwatch();
             var compressionTime = new Stopwatch();
-            var dictionaryAddTime = new Stopwatch();
+            var outputWaitTime = new Stopwatch();
             var counter = 0L;
+            long totalBytes = 0;
 
             while (totalBlocks == -1 || !source.Empty())
             {
-                dequeueTime.Start();
-                if (source.TryDequeue(out DataBlock block, QUEUE_TIMEOUT))
+                inputWaitTime.Start();
+                if (source.TryDequeue(out DataBlock block, stat.timeoutMillisecond))
                 {
-                    dequeueTime.Stop();
+                    inputWaitTime.Stop();
                     compressionTime.Start();
                     var compressedBlock = CompressOneBlock(block);
                     compressionTime.Stop();
-                    dictionaryAddTime.Start();
+                    totalBytes += block.Size;
+                    outputWaitTime.Start();
                     writeDictionary.Add(new DataBlock(compressedBlock, block.SequenceNr));
+                    outputWaitTime.Stop();
+                    inputWaitTime.Start();
                     used.Enqueue(block);
-                    dictionaryAddTime.Stop();
-                    //Console.WriteLine($"[Thread C {Environment.CurrentManagedThreadId}] Processing block {block.SequenceNr}. Size: {block.Size} -> {compressedBlock.Length}");
+                    inputWaitTime.Stop();
                     counter++;
                 }
             }
-            Console.WriteLine($"[Thread C {Environment.CurrentManagedThreadId}] Processed {counter} blocks. " + 
-            $"Wait+Dequeue:{dequeueTime.ElapsedMilliseconds} ms, " +
-            $"Compress:{compressionTime.ElapsedMilliseconds} ms, " +
-            $"Dictionary:{dictionaryAddTime.ElapsedMilliseconds} ms");
+            lock (stat)
+            {
+                stat.inputWaitMillisecond += inputWaitTime.ElapsedMilliseconds;
+                stat.compressionTimeMillisecond += compressionTime.ElapsedMilliseconds;
+                stat.outputWaitMillisecond += outputWaitTime.ElapsedMilliseconds;
+            }
         }
 
         public byte[] CompressOneBlock (DataBlock input)

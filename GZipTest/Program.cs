@@ -1,42 +1,33 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 
 namespace GZipTest
 {
     class Program
     {
-        const long BLOCK_SIZE = 1048576;
-
         static int Main(string[] args)
         {
+            var stat = new Statistics
+            {
+                compressionThreads = Environment.ProcessorCount
+            };
 
             if (AreArgumentsValid(args, out string error, out bool compress))
             {
-                Console.WriteLine($"Block size set to {BLOCK_SIZE} bytes.");
-                Console.WriteLine($"Starting {Environment.ProcessorCount} compression threads.");
-                var totalTime = new Stopwatch();
-                totalTime.Start();
-                long totalBytesRead;
-
+                stat.WriteStartMessages();
                 using (FileStream inputStream = new FileStream(args[1], FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan))
                 using (FileStream outputStream = File.Create(args[2], 4096, FileOptions.WriteThrough))
                 {
-                    totalBytesRead = Compress(inputStream, outputStream);
+                    Compress(inputStream, outputStream, stat);
                 }
-                Console.WriteLine($"Total time: {totalTime.ElapsedMilliseconds} ms.");
-                Console.WriteLine($"Total bytes read: {totalBytesRead}.");
-                Console.WriteLine($"Throughput: {totalBytesRead / totalTime.ElapsedMilliseconds / 1048.576} MB/s.");
-                Console.ReadKey();
+                stat.WriteEndStatistics();
                 return 0;
             }
             else
             {
                 Console.WriteLine(error);
             }
-            Console.ReadKey();
             return 1;
         }
 
@@ -69,14 +60,13 @@ namespace GZipTest
             return false;
         }
 
-        private static long Compress(Stream inputStream, Stream outputStream)
+        private static void Compress(Stream inputStream, Stream outputStream, Statistics stat)
         {
             var unusedSourceBlocks = new BlockQueue();
             var filledSourceBlocks = new BlockQueue();
             var destinationBlocks = new BlockDictionary();
             long totalBlocks = -1;
-            long totalBytesRead = 0;
-            var readerThread = new Thread(_ => new BlockReader().FillQueue(unusedSourceBlocks, filledSourceBlocks, inputStream, ref totalBlocks, ref totalBytesRead))
+            var readerThread = new Thread(_ => new BlockReader().FillQueue(unusedSourceBlocks, filledSourceBlocks, inputStream, ref totalBlocks, stat))
             {
                 Name = "Reader"
             };
@@ -84,9 +74,9 @@ namespace GZipTest
 
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                unusedSourceBlocks.Enqueue(new DataBlock(BLOCK_SIZE));
-                unusedSourceBlocks.Enqueue(new DataBlock(BLOCK_SIZE));
-                var worker = new Thread(_ => new GZipWorker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks))
+                unusedSourceBlocks.Enqueue(new DataBlock(stat.blockSize));
+                unusedSourceBlocks.Enqueue(new DataBlock(stat.blockSize));
+                var worker = new Thread(_ => new GZipWorker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks, stat))
                 {
                     Name = $"Worker {i}"
                 };
@@ -94,9 +84,8 @@ namespace GZipTest
             }
 
             var b = new BlockWriter();
-            b.WriteToStream(destinationBlocks, outputStream, true, ref totalBlocks);
+            b.WriteToStream(destinationBlocks, outputStream, true, ref totalBlocks, stat);
             readerThread.Join();
-            return totalBytesRead;
         }
     }
 }
