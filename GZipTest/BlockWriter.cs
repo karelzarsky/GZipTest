@@ -3,11 +3,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GZipTest
 {
-    public class BlockWriter
+    public class BlockWriter : IBlockWriter
     {
         const int DICTIONARY_TIMEOUT = 100;
 
-        public void WriteToStream(IBlockDictionary source, Stream destination, bool includeBlockHeader, ref long totalBlocks, Statistics stat)
+        public void WriteToStream(IBlockDictionary source, Stream destination, bool includeBlockHeader, ref long totalBlocks, IStatistics stats)
         {
             long counter = 0;
             BinaryFormatter formatter = new BinaryFormatter();
@@ -20,13 +20,13 @@ namespace GZipTest
                         formatter.Serialize(destination, block.SequenceNr);
                         formatter.Serialize(destination, block.Size);
                     }
-                    stat.totalBytesWritten += block.Size;
-                    stat.diskWriteTime.Start();
+                    stats.TotalBytesWritten += block.Size;
+                    stats.DiskWriteTime.Start();
                     destination.Write(block.Data, 0, block.Size);
-                    stat.diskWriteTime.Stop();
+                    stats.DiskWriteTime.Stop();
                     counter++;
                 }
-                stat.WriteIntrermediateStatistics();
+                stats.WriteIntrermediateStatistics();
             }
             destination.Close();
             destination.Dispose();

@@ -9,7 +9,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockDictionary_NewInstance_IsEmpty()
         {
-            var sut = new BlockDictionary(999);
+            var sut = new BlockDictionary();
 
             bool res = sut.Empty();
 
@@ -19,7 +19,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockDictionary_AfterAdd_IsNotEmpty()
         {
-            var sut = new BlockDictionary(999);
+            var sut = new BlockDictionary();
             sut.Add(new DataBlock(0));
 
             bool res = sut.Empty();
@@ -31,7 +31,7 @@ namespace UnitTests
         public void BlockDictionary_AfterAdd_CanRetrive()
         {
             long nr = 456;
-            var sut = new BlockDictionary(999);
+            var sut = new BlockDictionary();
             var block = new DataBlock(0)
             {
                 SequenceNr = nr
@@ -48,7 +48,7 @@ namespace UnitTests
         public void BlockDictionary_AfterAddAndRemove_IsEmpty()
         {
             long nr = 456;
-            var sut = new BlockDictionary(999);
+            var sut = new BlockDictionary();
             var block = new DataBlock(0)
             {
                 SequenceNr = nr
@@ -65,7 +65,7 @@ namespace UnitTests
         public void BlockDictionary_AfterAddTwo_CanRetriveSecond()
         {
             long nr = 456;
-            var sut = new BlockDictionary(999);
+            var sut = new BlockDictionary();
             sut.Add(new DataBlock(0) { SequenceNr = nr });
             sut.Add(new DataBlock(0) { SequenceNr = nr+1 });
 

@@ -1,24 +1,22 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 
 namespace GZipTest
 {
-    public class GZipWorker
+    public class GZipWorker : IGZipWorker
     {
         long totalBytes = 0L;
         Stopwatch compressionTime = new Stopwatch();
         Stopwatch inputWaitTime = new Stopwatch();
         Stopwatch outputWaitTime = new Stopwatch();
-        long counter = 0L;
 
-        public void DoCompression(IBlockQueue source, IBlockQueue used, IBlockDictionary writeDictionary, ref long totalBlocks, Statistics stat)
+        public void DoCompression(IBlockQueue source, IBlockQueue used, IBlockDictionary writeDictionary, ref long totalBlocks, IStatistics stats)
         {
             while (totalBlocks == -1 || !source.Empty())
             {
                 inputWaitTime.Start();
-                if (source.TryDequeue(out DataBlock block, stat.timeoutMilliseconds))
+                if (source.TryDequeue(out DataBlock block, stats.TimeoutMilliseconds))
                 {
                     inputWaitTime.Stop();
                     compressionTime.Start();
@@ -30,15 +28,14 @@ namespace GZipTest
                     outputWaitTime.Stop();
                     inputWaitTime.Start();
                     used.Enqueue(block);
-                    inputWaitTime.Stop();
-                    counter++;
                 }
+                inputWaitTime.Stop();
             }
-            lock (stat)
+            lock (stats)
             {
-                stat.inputWaitMilliseconds += inputWaitTime.ElapsedMilliseconds;
-                stat.compressionTimeMilliseconds += compressionTime.ElapsedMilliseconds;
-                stat.outputWaitMilliseconds += outputWaitTime.ElapsedMilliseconds;
+                stats.InputWaitMilliseconds += inputWaitTime.ElapsedMilliseconds;
+                stats.CompressionTimeMilliseconds += compressionTime.ElapsedMilliseconds;
+                stats.OutputWaitMilliseconds += outputWaitTime.ElapsedMilliseconds;
             }
         }
 

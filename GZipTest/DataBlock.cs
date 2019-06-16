@@ -1,6 +1,6 @@
 ﻿namespace GZipTest
 {
-    public class DataBlock
+    public class DataBlock : IDataBlock
     {
         public long SequenceNr { get; set; } = -1;
         public int Size { get; set; } = 0;

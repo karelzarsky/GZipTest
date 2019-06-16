@@ -3,65 +3,71 @@ using System.Diagnostics;
 
 namespace GZipTest
 {
-    public class Statistics
+    public class Statistics : IStatistics
     {
-        public readonly int timeoutMilliseconds = 100;
-        public readonly long blockSizeBytes = 1048576;
-        public int workerThreads = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount;
-        public long totalBytesRead = 0;
-        public long totalBytesWritten = 0;
-        public long inputWaitMilliseconds = 0;
-        public long outputWaitMilliseconds = 0;
-        public long compressionTimeMilliseconds = 0;
-        
-        public Stopwatch totalTime = Stopwatch.StartNew();
-        public Stopwatch diskReadTime = new Stopwatch();
-        public Stopwatch diskWriteTime = new Stopwatch();
-
         private const int intermediateAfterMilliseconds = 2000;
+        private const int megabyte = 1048576;
         private bool intermediateAlreadyShown = false;
+        private double ConvertToMBps(double x) => x / 1048.576;
+        private double Throughput => ConvertToMBps(Math.Max(TotalBytesRead, TotalBytesWritten) / TotalTime.ElapsedMilliseconds);
+        private double DiskReadSpeed => ConvertToMBps(TotalBytesRead / DiskReadTime.ElapsedMilliseconds);
+        private double DiskWriteSpeed => ConvertToMBps(TotalBytesWritten / DiskWriteTime.ElapsedMilliseconds);
+        private double CompressSpeed => ConvertToMBps(Math.Max(TotalBytesRead, TotalBytesWritten) / CompressionTimeMilliseconds);
+        private double InputWaitPercent => (double)InputWaitMilliseconds / (InputWaitMilliseconds + CompressionTimeMilliseconds + OutputWaitMilliseconds);
+        private double OutputWaitPercent => (double)OutputWaitMilliseconds / (InputWaitMilliseconds + CompressionTimeMilliseconds + OutputWaitMilliseconds);
+        private long PeakMemoryMB => Process.GetCurrentProcess().PeakWorkingSet64 / megabyte;
+        private double ReadUtilization => (double)DiskReadTime.ElapsedMilliseconds / TotalTime.ElapsedMilliseconds;
+        private double WriteUtilization => (double)DiskWriteTime.ElapsedMilliseconds / TotalTime.ElapsedMilliseconds;
+        private double WorkerUtilization => (double)CompressionTimeMilliseconds / WorkerThreads / TotalTime.ElapsedMilliseconds;
+        private double CompressionRatio => (double)TotalBytesWritten / TotalBytesRead;
 
-        private double ToMBps(double x) => x / 1048.576;
-        private double Throughput => ToMBps (Math.Max(totalBytesRead, totalBytesWritten) / totalTime.ElapsedMilliseconds);
-        private double DiskReadSpeed => ToMBps (totalBytesRead / diskReadTime.ElapsedMilliseconds);
-        private double DiskWriteSpeed => ToMBps (totalBytesWritten / diskWriteTime.ElapsedMilliseconds);
-        private double CompressSpeed => ToMBps (Math.Max(totalBytesRead, totalBytesWritten) / compressionTimeMilliseconds);
-        private double InputWaitPercent => (double) inputWaitMilliseconds / (inputWaitMilliseconds + compressionTimeMilliseconds + outputWaitMilliseconds);
-        private double OutputWaitPercent => (double) outputWaitMilliseconds / (inputWaitMilliseconds + compressionTimeMilliseconds + outputWaitMilliseconds);
-        private long PeakMemoryMB => Process.GetCurrentProcess().PeakWorkingSet64 / 1048576;
-        private double ReadUtilization => (double) diskReadTime.ElapsedMilliseconds / totalTime.ElapsedMilliseconds;
-        private double WriteUtilization => (double) diskWriteTime.ElapsedMilliseconds / totalTime.ElapsedMilliseconds;
-        private double CompressionUtilization => (double) compressionTimeMilliseconds / workerThreads / totalTime.ElapsedMilliseconds;
+        public int TimeoutMilliseconds => 100;
+        public long BlockSizeBytes => megabyte;
+        public int WorkerThreads { get; set; } = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount;
+        public long TotalBytesRead { get; set; } = 0;
+        public long TotalBytesWritten { get; set; } = 0;
+        public long InputWaitMilliseconds { get; set; } = 0;
+        public long OutputWaitMilliseconds { get; set; } = 0;
+        public long CompressionTimeMilliseconds { get; set; } = 0;
+        public Stopwatch TotalTime { get; set; } = Stopwatch.StartNew();
+        public Stopwatch DiskReadTime { get; set; } = new Stopwatch();
+        public Stopwatch DiskWriteTime { get; set; } = new Stopwatch();
 
         public void WriteStartMessages()
         {
-            Console.WriteLine($"Block size set to {blockSizeBytes} bytes.");
-            Console.WriteLine($"Starting 1 reading thread and {workerThreads} compression threads.");
+            Console.WriteLine($"Block size: {BlockSizeBytes} bytes");
+            Console.WriteLine($"Starting 1 reading thread and {WorkerThreads} worker threads.\r\n");
         }
 
         public void WriteIntrermediateStatistics()
         {
-            if (intermediateAlreadyShown || totalTime.ElapsedMilliseconds < intermediateAfterMilliseconds) return;
+            if (intermediateAlreadyShown || TotalTime.ElapsedMilliseconds < intermediateAfterMilliseconds)
+            {
+                return;
+            }
+
             intermediateAlreadyShown = true;
             Console.WriteLine("Intermediate statistics");
+            Console.WriteLine("-----------------------");
             Console.WriteLine($"Peak working memory: {PeakMemoryMB:F0} MB");
-            Console.WriteLine($"Disk reading speed: {DiskReadSpeed:F0} MB/s, Reading thread utilization: {ReadUtilization:P3}");
-            Console.WriteLine($"Disk writing speed: {DiskWriteSpeed:F0} MB/s, Writing thread utilization: {WriteUtilization:P3}");
-            Console.WriteLine($"Application run time: {(double)totalTime.ElapsedMilliseconds / 1000 :F3} s");
+            Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reading thread utilization: {ReadUtilization:P3}");
+            Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writing thread utilization: {WriteUtilization:P3}");
             Console.WriteLine($"Throughput: {Throughput:F3} MB/s");
-            Console.WriteLine($"Processing continues...\r\n");
+            Console.WriteLine("Processing continues, please wait...\r\n");
         }
 
         public void WriteEndStatistics()
         {
             Console.WriteLine("Final statistics");
+            Console.WriteLine("================");
             Console.WriteLine($"Peak working memory: {PeakMemoryMB:F0} MB");
-            Console.WriteLine($"Disk reading speed: {DiskReadSpeed:F0} MB/s, Reading thread utilization: {ReadUtilization:P3}");
-            Console.WriteLine($"Disk writing speed: {DiskWriteSpeed:F0} MB/s, Writing thread utilization: {WriteUtilization:P3}");
-            Console.WriteLine($"Compresss speed: {CompressSpeed:F0} MB/s each thread, Compression threads utilization: {CompressionUtilization:P3}");
-            Console.WriteLine($"Time wasted waiting for input queues: {InputWaitPercent:P3}");
-            Console.WriteLine($"Time wasted waiting for output dictionary: {OutputWaitPercent:P3}");
-            Console.WriteLine($"Application run time: {(double)totalTime.ElapsedMilliseconds / 1000:F3} s");
+            Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reading thread utilization: {ReadUtilization:P3}");
+            Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writing thread utilization: {WriteUtilization:P3}");
+            Console.WriteLine($"Average compresss speed: {CompressSpeed:F0} MB/s each thread, Workers utilization: {WorkerUtilization:P3}");
+            Console.WriteLine($"Time spent waiting for input queues: {InputWaitPercent:P3}");
+            Console.WriteLine($"Time spent waiting for output dictionary: {OutputWaitPercent:P3}");
+            Console.WriteLine($"Compression ratio: {CompressionRatio:P3}");
+            Console.WriteLine($"Application run time: {(double)TotalTime.ElapsedMilliseconds / 1000:F3} s");
             Console.WriteLine($"Total throughput: {Throughput:F3} MB/s");
         }
     }
