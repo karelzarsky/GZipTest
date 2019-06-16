@@ -8,10 +8,7 @@ namespace GZipTest
     {
         static int Main(string[] args)
         {
-            var stat = new Statistics
-            {
-                compressionThreads = Environment.ProcessorCount
-            };
+            var stat = new Statistics();
 
             if (AreArgumentsValid(args, out string error, out bool compress))
             {
@@ -64,7 +61,7 @@ namespace GZipTest
         {
             var unusedSourceBlocks = new BlockQueue();
             var filledSourceBlocks = new BlockQueue();
-            var destinationBlocks = new BlockDictionary();
+            var destinationBlocks = new BlockDictionary(stat.workerThreads * 4);
             long totalBlocks = -1;
             var readerThread = new Thread(_ => new BlockReader().FillQueue(unusedSourceBlocks, filledSourceBlocks, inputStream, ref totalBlocks, stat))
             {
@@ -72,13 +69,14 @@ namespace GZipTest
             };
             readerThread.Start();
 
-            for (int i = 0; i < Environment.ProcessorCount; i++)
+            for (int i = 0; i < stat.workerThreads; i++)
             {
-                unusedSourceBlocks.Enqueue(new DataBlock(stat.blockSize));
-                unusedSourceBlocks.Enqueue(new DataBlock(stat.blockSize));
+                unusedSourceBlocks.Enqueue(new DataBlock(stat.blockSizeBytes));
+                unusedSourceBlocks.Enqueue(new DataBlock(stat.blockSizeBytes));
                 var worker = new Thread(_ => new GZipWorker().DoCompression(filledSourceBlocks, unusedSourceBlocks, destinationBlocks, ref totalBlocks, stat))
                 {
-                    Name = $"Worker {i}"
+                    Name = $"Worker {i}",
+                    Priority = ThreadPriority.BelowNormal
                 };
                 worker.Start();
             }

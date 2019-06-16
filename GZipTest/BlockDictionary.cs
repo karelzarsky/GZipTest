@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace GZipTest
@@ -6,13 +7,20 @@ namespace GZipTest
     public class BlockDictionary : IBlockDictionary
     {
         private readonly Dictionary<long, DataBlock> dictionary = new Dictionary<long, DataBlock>();
+        private readonly int maximumCapacity;
+        private long lastRetreivedKey = -1;
+
+        public BlockDictionary(int capacity)
+        {
+            maximumCapacity = capacity;
+        }
 
         public void Add(DataBlock block)
         {
             Monitor.Enter(this);
             try
             {
-                while (dictionary.Count > 20)
+                while (block.SequenceNr > lastRetreivedKey + maximumCapacity)
                 {
                     Monitor.Wait(this);
                 }
@@ -35,9 +43,11 @@ namespace GZipTest
                 {
                     Monitor.Wait(this, timeout);
                 }
-                bool res = dictionary.TryGetValue(key, out block) && dictionary.Remove(key);
+                bool success = dictionary.TryGetValue(key, out block);
+                dictionary.Remove(key);
+                lastRetreivedKey = key;
                 Monitor.PulseAll(this);
-                return res;
+                return success;
             }
             finally
             {

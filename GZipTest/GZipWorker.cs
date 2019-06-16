@@ -7,18 +7,18 @@ namespace GZipTest
 {
     public class GZipWorker
     {
+        long totalBytes = 0L;
+        Stopwatch compressionTime = new Stopwatch();
+        Stopwatch inputWaitTime = new Stopwatch();
+        Stopwatch outputWaitTime = new Stopwatch();
+        long counter = 0L;
+
         public void DoCompression(IBlockQueue source, IBlockQueue used, IBlockDictionary writeDictionary, ref long totalBlocks, Statistics stat)
         {
-            var inputWaitTime = new Stopwatch();
-            var compressionTime = new Stopwatch();
-            var outputWaitTime = new Stopwatch();
-            var counter = 0L;
-            long totalBytes = 0;
-
             while (totalBlocks == -1 || !source.Empty())
             {
                 inputWaitTime.Start();
-                if (source.TryDequeue(out DataBlock block, stat.timeoutMillisecond))
+                if (source.TryDequeue(out DataBlock block, stat.timeoutMilliseconds))
                 {
                     inputWaitTime.Stop();
                     compressionTime.Start();
@@ -36,9 +36,9 @@ namespace GZipTest
             }
             lock (stat)
             {
-                stat.inputWaitMillisecond += inputWaitTime.ElapsedMilliseconds;
-                stat.compressionTimeMillisecond += compressionTime.ElapsedMilliseconds;
-                stat.outputWaitMillisecond += outputWaitTime.ElapsedMilliseconds;
+                stat.inputWaitMilliseconds += inputWaitTime.ElapsedMilliseconds;
+                stat.compressionTimeMilliseconds += compressionTime.ElapsedMilliseconds;
+                stat.outputWaitMilliseconds += outputWaitTime.ElapsedMilliseconds;
             }
         }
 

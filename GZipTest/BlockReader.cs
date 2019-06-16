@@ -24,7 +24,7 @@ namespace GZipTest
                 }
             }
             stream.Dispose();
-            stat.totalBlocks = totalBlocks = counter;
+            totalBlocks = counter;
             queueFilled.PulseAll();
         }
     }
