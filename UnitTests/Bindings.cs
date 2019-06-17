@@ -15,7 +15,7 @@ namespace GZipTest
             Bind<IStatistics>().To<Statistics>();
             Bind<IThreadsCreator>().To<ThreadsCreator>();
             Bind<IArgumentsParser>().To<ArgumentsParser>();
-            
+            Bind<ISettings>().To<Settings>();
         }
     }
 }

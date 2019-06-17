@@ -5,6 +5,6 @@ namespace GZipTest
     {
         byte[] CompressOneBlock(DataBlock input);
         byte[] DecompressOneBlock(DataBlock input);
-        void DoCompression(IBlockQueue source, IBlockQueue used, ref long totalBlocks);
+        void DoCompression(IBlockQueue source, IBlockQueue used);
     }
 }

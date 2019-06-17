@@ -32,7 +32,7 @@ namespace GZipTest
             }
         }
 
-        public bool TryRetrive(long key, out DataBlock block)
+        public bool TryRetrieve(long key, out DataBlock block)
         {
             block = null;
             Monitor.Enter(this);

@@ -34,20 +34,22 @@ namespace GZipTest
         public void StartThreads(Stream inputStream, Stream outputStream)
         {
             stats.WriteStartMessages();
+            Thread readerThread = StartReader(inputStream);
+            List<Thread> workers = StartWorkers();
+            blockWriter.WriteToStream(outputStream);
+            readerThread.Join();
+            workers.ForEach(x => x.Join());
+            stats.WriteEndStatistics();
+        }
 
-            // Reading
-            long totalBlocks = -1;
-            var readerThread = new Thread(_ => blockReader.FillQueue(inputStream, unusedSourceBlocks, filledSourceBlocks, ref totalBlocks)) { Name = "Reader" };
-            readerThread.Start();
-
-            // Processing
-            
+        private List<Thread> StartWorkers()
+        {
             var workers = new List<Thread>();
             for (int i = 0; i < settings.WorkerThreads; i++)
             {
                 unusedSourceBlocks.Enqueue(new DataBlock(settings.BlockSizeBytes));
                 unusedSourceBlocks.Enqueue(new DataBlock(settings.BlockSizeBytes));
-                var worker = new Thread(_ => new Worker(outputBuffer, stats, settings).DoCompression(filledSourceBlocks, unusedSourceBlocks, ref totalBlocks))
+                var worker = new Thread(_ => new Worker(outputBuffer, stats, settings).DoCompression(filledSourceBlocks, unusedSourceBlocks))
                 {
                     Name = $"Worker {i}",
                     Priority = ThreadPriority.BelowNormal
@@ -55,13 +57,14 @@ namespace GZipTest
                 workers.Add(worker);
                 worker.Start();
             }
+            return workers;
+        }
 
-            // Writing
-            blockWriter.WriteToStream(outputStream, ref totalBlocks);
-
-            readerThread.Join();
-            workers.ForEach(x => x.Join());
-            stats.WriteEndStatistics();
+        private Thread StartReader(Stream inputStream)
+        {
+            var readerThread = new Thread(_ => blockReader.FillQueue(inputStream, unusedSourceBlocks, filledSourceBlocks)) { Name = "Reader" };
+            readerThread.Start();
+            return readerThread;
         }
     }
 }

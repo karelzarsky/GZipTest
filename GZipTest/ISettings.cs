@@ -9,5 +9,6 @@ namespace GZipTest
         int MonitorTimeoutMilliseconds { get; }
         int WorkerThreads { get; }
         int WriteBufferCapacity { get; }
+        long TotalBlocks { get; set; }
     }
 }

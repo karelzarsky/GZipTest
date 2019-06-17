@@ -10,10 +10,16 @@ namespace UnitTests
     {
         StandardKernel kernel = new StandardKernel();
 
+        public WorkerTests()
+        {
+            kernel.Load(System.Reflection.Assembly.GetExecutingAssembly());
+        }
+
         [TestMethod]
         public void CompressOneBlock_SequentionalArray_ReturnsLargeResult()
         {
             var sut = kernel.Get<IWorker>();
+
             byte[] array = Enumerable.Range(0, 255).Select(x => (byte)x).ToArray();
             var db = new DataBlock(array, 1);
 

@@ -9,6 +9,11 @@ namespace UnitTests
     {
         StandardKernel kernel = new StandardKernel();
 
+        public BlockQueueTests()
+        {
+            kernel.Load(System.Reflection.Assembly.GetExecutingAssembly());
+        }
+
         [TestMethod]
         public void BlockQueue_TryDequeueOnEmpty_ReturnsFalse()
         {

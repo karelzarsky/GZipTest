@@ -20,13 +20,14 @@ namespace GZipTest
             this.settings = settings;
         }
 
-        public void DoCompression(IBlockQueue filled, IBlockQueue empty, ref long totalBlocks)
+        public void DoCompression(IBlockQueue filled, IBlockQueue empty)
         {
-            while (totalBlocks == -1 || !filled.Empty())
+            while (true)
             {
                 inputWaitTime.Start();
                 if (filled.TryDequeue(out DataBlock block))
                 {
+                    if (block == null) break;
                     inputWaitTime.Stop();
                     compressionTime.Start();
                     var compressedBlock = CompressOneBlock(block);

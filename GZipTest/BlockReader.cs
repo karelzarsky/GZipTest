@@ -5,13 +5,15 @@ namespace GZipTest
     public class BlockReader : IBlockReader
     {
         private readonly IStatistics stats;
+        private readonly ISettings settings;
 
-        public BlockReader(IStatistics stats)
+        public BlockReader(IStatistics stats, ISettings settings)
         {
             this.stats = stats;
+            this.settings = settings;
         }
 
-        public void FillQueue(Stream stream, IBlockQueue queueEmpty, IBlockQueue queueFilled, ref long totalBlocks)
+        public void FillQueue(Stream stream, IBlockQueue queueEmpty, IBlockQueue queueFilled)
         {
             long counter = 0;
             int bytesRead;
@@ -31,7 +33,11 @@ namespace GZipTest
                 }
             }
             stream.Dispose();
-            totalBlocks = counter;
+            settings.TotalBlocks = counter;
+            for (int i = 0; i <= settings.WorkerThreads; i++)
+            {
+                queueFilled.Enqueue(null);
+            }
             queueFilled.PulseAll();
         }
     }

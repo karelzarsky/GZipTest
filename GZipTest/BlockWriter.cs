@@ -15,13 +15,14 @@ namespace GZipTest
             this.stats = stats;
             this.settings = settings;
         }
-        public void WriteToStream(Stream destination, ref long totalBlocks)
+
+        public void WriteToStream(Stream destination)
         {
             long counter = 0;
             BinaryFormatter formatter = new BinaryFormatter();
-            while (counter != totalBlocks)
+            while (counter != settings.TotalBlocks)
             {
-                if (source.TryRetrive(counter, out DataBlock block))
+                if (source.TryRetrieve(counter, out DataBlock block))
                 {
                     if (settings.Mode == System.IO.Compression.CompressionMode.Compress)
                     {

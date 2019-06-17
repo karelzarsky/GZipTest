@@ -62,14 +62,14 @@ namespace GZipTest
             Console.WriteLine("Final statistics");
             Console.WriteLine("================");
             Console.WriteLine($"Peak working memory: {PeakMemoryMB:F0} MB");
-            Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reading thread utilization: {ReadUtilization:P3}");
-            Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writing thread utilization: {WriteUtilization:P3}");
+            Console.WriteLine($"Total throughput: {Throughput:F3} MB/s");
+            Console.WriteLine($"Time spent reading and waiting for input queues: {InputWaitPercent:P3}");
+            Console.WriteLine($"Time spent writing and waiting for output buffer: {OutputWaitPercent:P3}");
             Console.WriteLine($"Average compresss speed: {CompressSpeed:F0} MB/s each thread, Workers utilization: {WorkerUtilization:P3}");
-            Console.WriteLine($"Time spent waiting for input queues: {InputWaitPercent:P3}");
-            Console.WriteLine($"Time spent waiting for output buffer: {OutputWaitPercent:P3}");
+            Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reader thread utilization: {ReadUtilization:P3}");
+            Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writer thread utilization: {WriteUtilization:P3}");
             Console.WriteLine($"Compression ratio: {CompressionRatio:P3}");
             Console.WriteLine($"Application run time: {(double)TotalTime.ElapsedMilliseconds / 1000:F3} s");
-            Console.WriteLine($"Total throughput: {Throughput:F3} MB/s");
         }
     }
 }

@@ -4,6 +4,6 @@ namespace GZipTest
 {
     public interface IBlockWriter
     {
-        void WriteToStream(Stream destination, ref long totalBlocks);
+        void WriteToStream(Stream destination);
     }
 }

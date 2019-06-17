@@ -10,6 +10,11 @@ namespace UnitTests
     {
         StandardKernel kernel = new StandardKernel();
 
+        public BlockReaderTests()
+        {
+            kernel.Load(System.Reflection.Assembly.GetExecutingAssembly());
+        }
+
         [TestMethod]
         public void BlockReader_FillQueue_RemovesItemsFromInputQueue()
         {
@@ -19,9 +24,8 @@ namespace UnitTests
             var stream = new MemoryStream(new byte[] {1, 2, 3, 4, 5, 6, 7});
             inputQueue.Enqueue(new DataBlock(100));
             inputQueue.Enqueue(new DataBlock(100));
-            long totalblocks = -1;
 
-            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            sut.FillQueue(stream, inputQueue, outputQueue);
             bool canDequeue = inputQueue.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(false, canDequeue);
@@ -36,9 +40,8 @@ namespace UnitTests
             inputQueue.Enqueue(new DataBlock(100));
             inputQueue.Enqueue(new DataBlock(100));
             var sut = kernel.Get<IBlockReader>();
-            long totalblocks = -1;
 
-            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            sut.FillQueue(stream, inputQueue, outputQueue);
             bool canDequeue = outputQueue.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(true, canDequeue);
@@ -53,9 +56,8 @@ namespace UnitTests
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             inputQueue.Enqueue(new DataBlock(100));
             inputQueue.Enqueue(new DataBlock(100));
-            long totalblocks = -1;
 
-            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            sut.FillQueue(stream, inputQueue, outputQueue);
             bool canDequeue = outputQueue.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(0, b.Data[0]);
@@ -75,9 +77,8 @@ namespace UnitTests
             {
                 inputQueue.Enqueue(new DataBlock(5));
             }
-            long totalblocks = -1;
 
-            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            sut.FillQueue(stream, inputQueue, outputQueue);
             bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
             bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
             bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
@@ -99,9 +100,8 @@ namespace UnitTests
             {
                 inputQueue.Enqueue(new DataBlock(1));
             }
-            long totalblocks = -1;
 
-            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            sut.FillQueue(stream, inputQueue, outputQueue);
             bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
             bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
             bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
@@ -122,9 +122,8 @@ namespace UnitTests
             {
                 inputQueue.Enqueue(new DataBlock(5));
             }
-            long totalblocks = -1;
 
-            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            sut.FillQueue(stream, inputQueue, outputQueue);
             bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
             bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
             bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);

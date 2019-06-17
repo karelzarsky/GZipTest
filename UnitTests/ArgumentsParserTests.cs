@@ -25,7 +25,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void ParseArguments_NoArguments_ReturnsError()
+        public void ParseArguments_NoArguments_OutputsErrorMessage()
         {
             var sut = kernel.Get<IArgumentsParser>();
             bool success = sut.ParseArguments(new string[0], out string error, out Stream input, out Stream output);
@@ -38,9 +38,14 @@ namespace UnitTests
             var sut = kernel.Get<IArgumentsParser>();
             bool success = sut.ParseArguments(new string[] {"xxx", "", "" }, out string error, out Stream input, out Stream output);
             Assert.IsFalse(success);
-            Assert.IsFalse(string.IsNullOrEmpty(error));
         }
 
-
+        [TestMethod]
+        public void ParseArguments_UnknownWord_OutputsErrorMessage()
+        {
+            var sut = kernel.Get<IArgumentsParser>();
+            bool success = sut.ParseArguments(new string[] { "xxx", "", "" }, out string error, out Stream input, out Stream output);
+            Assert.IsFalse(string.IsNullOrEmpty(error));
+        }
     }
 }
