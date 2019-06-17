@@ -6,16 +6,20 @@ namespace GZipTest
     public class BlockDictionary : IBlockDictionary
     {
         private readonly Dictionary<long, DataBlock> dictionary = new Dictionary<long, DataBlock>();
+        private readonly ISettings settings;
         private long lastRetreivedKey = -1;
 
-        public int MaximumCapacity { get; set; } = int.MaxValue;
+        public BlockDictionary(ISettings settings)
+        {
+            this.settings = settings;
+        }
 
         public void Add(DataBlock block)
         {
             Monitor.Enter(this);
             try
             {
-                while (block.SequenceNr > lastRetreivedKey + MaximumCapacity)
+                while (block.SequenceNr > lastRetreivedKey + settings.WriteBufferCapacity)
                 {
                     Monitor.Wait(this);
                 }
@@ -28,7 +32,7 @@ namespace GZipTest
             }
         }
 
-        public bool TryRetrive(long key, out DataBlock block, int timeout)
+        public bool TryRetrive(long key, out DataBlock block)
         {
             block = null;
             Monitor.Enter(this);
@@ -36,7 +40,7 @@ namespace GZipTest
             {
                 while (!dictionary.ContainsKey(key))
                 {
-                    Monitor.Wait(this, timeout);
+                    Monitor.Wait(this, settings.MonitorTimeoutMilliseconds);
                 }
                 bool success = dictionary.TryGetValue(key, out block);
                 dictionary.Remove(key);

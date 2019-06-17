@@ -1,29 +1,23 @@
-﻿using System;
+﻿using Ninject;
+using System;
 using System.IO;
 using System.Reflection;
-using Ninject;
 
 namespace GZipTest
 {
-    class Program
+    internal class Program
     {
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             try
             {
+                // Ninject dependency injection container
                 var kernel = new StandardKernel();
                 kernel.Load(Assembly.GetExecutingAssembly());
-                var stats = kernel.Get<IStatistics>();
-                if (kernel.Get<IArgumentsParser>().ParseArguments(args, out string error, out bool compress, out Stream inputStream, out Stream outputStream))
+
+                if (kernel.Get<IArgumentsParser>().ParseArguments(args, out string error, out Stream inputStream, out Stream outputStream))
                 {
-                    stats.WriteStartMessages();
-                    kernel.Get<IThreadsCreator>().StartThreads(inputStream, outputStream, stats,
-                        unusedSourceBlocks: kernel.Get<IBlockQueue>(),
-                        filledSourceBlocks: kernel.Get<IBlockQueue>(),
-                        blockReader: kernel.Get<IBlockReader>(),
-                        blockWriter: kernel.Get<IBlockWriter>(),
-                        outputBuffer: kernel.Get < IBlockDictionary>());
-                    stats.WriteEndStatistics();
+                    kernel.Get<IThreadsCreator>().StartThreads(inputStream, outputStream);
                     return 0;
                 }
                 Console.WriteLine(error);

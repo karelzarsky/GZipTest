@@ -9,13 +9,23 @@ namespace GZipTest
         Stopwatch compressionTime = new Stopwatch();
         Stopwatch inputWaitTime = new Stopwatch();
         Stopwatch outputWaitTime = new Stopwatch();
+        private readonly IBlockDictionary writeDictionary;
+        private readonly IStatistics stats;
+        private readonly ISettings settings;
 
-        public void DoCompression(IBlockQueue filled, IBlockQueue empty, IBlockDictionary writeDictionary, ref long totalBlocks, IStatistics stats)
+        public Worker(IBlockDictionary writeDictionary, IStatistics stats, ISettings settings)
+        {
+            this.writeDictionary = writeDictionary;
+            this.stats = stats;
+            this.settings = settings;
+        }
+
+        public void DoCompression(IBlockQueue filled, IBlockQueue empty, ref long totalBlocks)
         {
             while (totalBlocks == -1 || !filled.Empty())
             {
                 inputWaitTime.Start();
-                if (filled.TryDequeue(out DataBlock block, stats.MonitorTimeoutMilliseconds))
+                if (filled.TryDequeue(out DataBlock block))
                 {
                     inputWaitTime.Stop();
                     compressionTime.Start();
@@ -45,6 +55,17 @@ namespace GZipTest
                 gs.Write(input.Data, 0, input.Size);
                 gs.Close();
                 return output.ToArray();
+            }
+        }
+
+        public byte[] DecompressOneBlock(DataBlock input)
+        {
+            using (var res = new MemoryStream())
+            using (var original = new MemoryStream(input.Data))
+            using (GZipStream decompressionStream = new GZipStream(original, CompressionMode.Decompress))
+            {
+                decompressionStream.CopyTo(res);
+                return res.ToArray();
             }
         }
     }

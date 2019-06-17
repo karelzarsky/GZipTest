@@ -5,15 +5,25 @@ namespace GZipTest
 {
     public class BlockWriter : IBlockWriter
     {
-        public void WriteToStream(IBlockDictionary source, Stream destination, bool includeBlockHeader, ref long totalBlocks, IStatistics stats)
+        private readonly IBlockDictionary source;
+        private readonly IStatistics stats;
+        private readonly ISettings settings;
+
+        public BlockWriter(IBlockDictionary source, IStatistics stats, ISettings settings)
+        {
+            this.source = source;
+            this.stats = stats;
+            this.settings = settings;
+        }
+        public void WriteToStream(Stream destination, ref long totalBlocks)
         {
             long counter = 0;
             BinaryFormatter formatter = new BinaryFormatter();
             while (counter != totalBlocks)
             {
-                if (source.TryRetrive(counter, out DataBlock block, stats.MonitorTimeoutMilliseconds))
+                if (source.TryRetrive(counter, out DataBlock block))
                 {
-                    if (includeBlockHeader)
+                    if (settings.Mode == System.IO.Compression.CompressionMode.Compress)
                     {
                         formatter.Serialize(destination, block.SequenceNr);
                         formatter.Serialize(destination, block.Size);

@@ -17,13 +17,11 @@ namespace GZipTest
         private double OutputWaitPercent => (double)OutputWaitMilliseconds / (InputWaitMilliseconds + CompressionTimeMilliseconds + OutputWaitMilliseconds);
         private double ReadUtilization => TotalTime.ElapsedMilliseconds == 0 ? 1 : (double)DiskReadTime.ElapsedMilliseconds / TotalTime.ElapsedMilliseconds;
         private double WriteUtilization => TotalTime.ElapsedMilliseconds == 0 ? 1 : (double)DiskWriteTime.ElapsedMilliseconds / TotalTime.ElapsedMilliseconds;
-        private double WorkerUtilization => TotalTime.ElapsedMilliseconds == 0 ? 1 : (double)CompressionTimeMilliseconds / WorkerThreads / TotalTime.ElapsedMilliseconds;
+        private double WorkerUtilization => TotalTime.ElapsedMilliseconds == 0 ? 1 : (double)CompressionTimeMilliseconds / Settings.WorkerThreads / TotalTime.ElapsedMilliseconds;
         private double CompressionRatio => TotalBytesRead == 0 ? 0 : (double)TotalBytesWritten / TotalBytesRead;
         private long PeakMemoryMB => Process.GetCurrentProcess().PeakWorkingSet64 / megabyte;
+        private readonly ISettings Settings;
 
-        public int MonitorTimeoutMilliseconds => 100;
-        public long BlockSizeBytes => megabyte;
-        public int WorkerThreads { get; set; } = Environment.ProcessorCount < 4 ? Environment.ProcessorCount : Environment.ProcessorCount - 1;
         public long TotalBytesRead { get; set; } = 0;
         public long TotalBytesWritten { get; set; } = 0;
         public long InputWaitMilliseconds { get; set; } = 0;
@@ -33,26 +31,29 @@ namespace GZipTest
         public Stopwatch DiskReadTime { get; set; } = new Stopwatch();
         public Stopwatch DiskWriteTime { get; set; } = new Stopwatch();
 
+        public Statistics(ISettings settings)
+        {
+            Settings = settings;
+        }
+
         public void WriteStartMessages()
         {
-            Console.WriteLine($"Block size: {BlockSizeBytes} bytes");
-            Console.WriteLine($"Starting 1 reading thread and {WorkerThreads} worker threads.\r\n");
+            Console.WriteLine($"Block size: {Settings.BlockSizeBytes} bytes");
+            Console.WriteLine($"Starting 1 reading thread and {Settings.WorkerThreads} worker threads.\r\n");
         }
 
         public void WriteEarlyStatistics()
         {
             if (statsAlreadyShown || TotalTime.ElapsedMilliseconds < statsDelayMilliseconds)
-            {
                 return;
-            }
 
             statsAlreadyShown = true;
             Console.WriteLine("Preliminary statistics");
             Console.WriteLine("----------------------");
             Console.WriteLine($"Peak working memory: {PeakMemoryMB:F0} MB");
+            Console.WriteLine($"Throughput: {Throughput:F3} MB/s");
             Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reading thread utilization: {ReadUtilization:P3}");
             Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writing thread utilization: {WriteUtilization:P3}");
-            Console.WriteLine($"Throughput: {Throughput:F3} MB/s");
             Console.WriteLine("Processing continues, please wait...\r\n");
         }
 

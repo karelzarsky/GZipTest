@@ -1,15 +1,18 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GZipTest;
+using Ninject;
 
 namespace UnitTests
 {
     [TestClass]
     public class BlockDictionaryTests
     {
+        StandardKernel kernel = new StandardKernel();
+
         [TestMethod]
         public void BlockDictionary_NewInstance_IsEmpty()
         {
-            var sut = new BlockDictionary();
+            var sut = kernel.Get<IBlockDictionary>();
 
             bool res = sut.Empty();
 
@@ -19,7 +22,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockDictionary_AfterAdd_IsNotEmpty()
         {
-            var sut = new BlockDictionary();
+            var sut = kernel.Get<IBlockDictionary>();
             sut.Add(new DataBlock(0));
 
             bool res = sut.Empty();
@@ -31,14 +34,14 @@ namespace UnitTests
         public void BlockDictionary_AfterAdd_CanRetrive()
         {
             long nr = 456;
-            var sut = new BlockDictionary();
+            var sut = kernel.Get<IBlockDictionary>();
             var block = new DataBlock(0)
             {
                 SequenceNr = nr
             };
             sut.Add(block);
 
-            bool success = sut.TryRetrive(nr, out DataBlock res, 100);
+            bool success = sut.TryRetrive(nr, out DataBlock res);
 
             Assert.AreEqual(true, success);
             Assert.AreEqual(nr, res.SequenceNr);
@@ -48,14 +51,14 @@ namespace UnitTests
         public void BlockDictionary_AfterAddAndRemove_IsEmpty()
         {
             long nr = 456;
-            var sut = new BlockDictionary();
+            var sut = kernel.Get<IBlockDictionary>();
             var block = new DataBlock(0)
             {
                 SequenceNr = nr
             };
             sut.Add(block);
 
-            bool success = sut.TryRetrive(nr, out DataBlock res, 100);
+            bool success = sut.TryRetrive(nr, out DataBlock res);
             bool empty = sut.Empty();
 
             Assert.AreEqual(true, empty);
@@ -65,12 +68,12 @@ namespace UnitTests
         public void BlockDictionary_AfterAddTwo_CanRetriveSecond()
         {
             long nr = 456;
-            var sut = new BlockDictionary();
+            var sut = kernel.Get<IBlockDictionary>();
             sut.Add(new DataBlock(0) { SequenceNr = nr });
             sut.Add(new DataBlock(0) { SequenceNr = nr+1 });
 
-            bool success1 = sut.TryRetrive(nr, out DataBlock res, 100);
-            bool success2 = sut.TryRetrive(nr+1, out DataBlock res2, 100);
+            bool success1 = sut.TryRetrive(nr, out DataBlock res);
+            bool success2 = sut.TryRetrive(nr+1, out DataBlock res2);
             bool empty = sut.Empty();
 
             Assert.AreEqual(true, success1);

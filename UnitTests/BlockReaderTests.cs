@@ -1,25 +1,28 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GZipTest;
 using System.IO;
+using Ninject;
 
 namespace UnitTests
 {
     [TestClass]
     public class BlockReaderTests
     {
+        StandardKernel kernel = new StandardKernel();
+
         [TestMethod]
         public void BlockReader_FillQueue_RemovesItemsFromInputQueue()
         {
-            var sut = new BlockReader();
-            var inputQueue = new BlockQueue();
-            var outputQueue = new BlockQueue();
+            var inputQueue = kernel.Get<IBlockQueue>();
+            var outputQueue = kernel.Get<IBlockQueue>();
+            var sut = kernel.Get<IBlockReader>();
             var stream = new MemoryStream(new byte[] {1, 2, 3, 4, 5, 6, 7});
             inputQueue.Enqueue(new DataBlock(100));
             inputQueue.Enqueue(new DataBlock(100));
             long totalblocks = -1;
 
-            sut.FillQueue(inputQueue, outputQueue, stream, ref totalblocks, new Statistics());
-            bool canDequeue = inputQueue.TryDequeue(out DataBlock b, 100);
+            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            bool canDequeue = inputQueue.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(false, canDequeue);
         }
@@ -27,16 +30,16 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_AddsItemsToOutputQueue()
         {
-            var sut = new BlockReader();
-            var inputQueue = new BlockQueue();
-            var outputQueue = new BlockQueue();
+            var inputQueue = kernel.Get<IBlockQueue>();
+            var outputQueue = kernel.Get<IBlockQueue>();
             var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7 });
             inputQueue.Enqueue(new DataBlock(100));
             inputQueue.Enqueue(new DataBlock(100));
+            var sut = kernel.Get<IBlockReader>();
             long totalblocks = -1;
 
-            sut.FillQueue(inputQueue, outputQueue, stream, ref totalblocks, new Statistics());
-            bool canDequeue = outputQueue.TryDequeue(out DataBlock b, 100);
+            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            bool canDequeue = outputQueue.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(true, canDequeue);
         }
@@ -44,16 +47,16 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_FillsDataFromStream()
         {
-            var sut = new BlockReader();
-            var inputQueue = new BlockQueue();
-            var outputQueue = new BlockQueue();
+            var inputQueue = kernel.Get<IBlockQueue>();
+            var outputQueue = kernel.Get<IBlockQueue>();
+            var sut = kernel.Get<IBlockReader>();
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             inputQueue.Enqueue(new DataBlock(100));
             inputQueue.Enqueue(new DataBlock(100));
             long totalblocks = -1;
 
-            sut.FillQueue(inputQueue, outputQueue, stream, ref totalblocks, new Statistics());
-            bool canDequeue = outputQueue.TryDequeue(out DataBlock b, 100);
+            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            bool canDequeue = outputQueue.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(0, b.Data[0]);
             Assert.AreEqual(1, b.Data[1]);
@@ -64,9 +67,9 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_SplitsDataToBlocks()
         {
-            var sut = new BlockReader();
-            var inputQueue = new BlockQueue();
-            var outputQueue = new BlockQueue();
+            var inputQueue = kernel.Get<IBlockQueue>();
+            var outputQueue = kernel.Get<IBlockQueue>();
+            var sut = kernel.Get<IBlockReader>();
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
@@ -74,10 +77,10 @@ namespace UnitTests
             }
             long totalblocks = -1;
 
-            sut.FillQueue(inputQueue, outputQueue, stream, ref totalblocks, new Statistics());
-            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1, 100);
-            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2, 100);
-            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3, 100);
+            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
+            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
+            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
 
             Assert.AreEqual(true, canDequque1);
             Assert.AreEqual(true, canDequque2);
@@ -88,9 +91,9 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_CountsSequenceNumbers()
         {
-            var sut = new BlockReader();
-            var inputQueue = new BlockQueue();
-            var outputQueue = new BlockQueue();
+            var inputQueue = kernel.Get<IBlockQueue>();
+            var outputQueue = kernel.Get<IBlockQueue>();
+            var sut = kernel.Get<IBlockReader>();
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
@@ -98,10 +101,10 @@ namespace UnitTests
             }
             long totalblocks = -1;
 
-            sut.FillQueue(inputQueue, outputQueue, stream, ref totalblocks, new Statistics());
-            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1, 100);
-            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2, 100);
-            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3, 100);
+            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
+            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
+            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
 
             Assert.AreEqual(0, b1.SequenceNr);
             Assert.AreEqual(1, b2.SequenceNr);
@@ -111,9 +114,9 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_CountsBlockSize()
         {
-            var sut = new BlockReader();
-            var inputQueue = new BlockQueue();
-            var outputQueue = new BlockQueue();
+            var inputQueue = kernel.Get<IBlockQueue>();
+            var outputQueue = kernel.Get<IBlockQueue>();
+            var sut = kernel.Get<IBlockReader>();
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
@@ -121,10 +124,10 @@ namespace UnitTests
             }
             long totalblocks = -1;
 
-            sut.FillQueue(inputQueue, outputQueue, stream, ref totalblocks, new Statistics());
-            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1, 100);
-            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2, 100);
-            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3, 100);
+            sut.FillQueue(stream, inputQueue, outputQueue, ref totalblocks);
+            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
+            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
+            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
 
             Assert.AreEqual(5, b1.Size);
             Assert.AreEqual(3, b2.Size);

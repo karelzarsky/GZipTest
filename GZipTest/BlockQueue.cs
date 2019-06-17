@@ -6,6 +6,12 @@ namespace GZipTest
     public class BlockQueue : IBlockQueue
     {
         private Queue<DataBlock> queue = new Queue<DataBlock>();
+        private readonly ISettings settings;
+
+        public BlockQueue(ISettings settings)
+        {
+            this.settings = settings;
+        }
 
         public void Enqueue(DataBlock block)
         {
@@ -21,7 +27,7 @@ namespace GZipTest
             }
         }
 
-        public bool TryDequeue(out DataBlock block, int timeout)
+        public bool TryDequeue(out DataBlock block)
         {
             block = null;
             Monitor.Enter(this);
@@ -29,7 +35,7 @@ namespace GZipTest
             {
                 if (queue.Count == 0)
                 {
-                    Monitor.Wait(this, timeout);
+                    Monitor.Wait(this, settings.MonitorTimeoutMilliseconds);
                 }
                 try
                 {

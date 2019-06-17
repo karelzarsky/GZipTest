@@ -4,20 +4,17 @@ namespace GZipTest
 {
     public interface IStatistics
     {
-        long BlockSizeBytes { get; }
         long CompressionTimeMilliseconds { get; set; }
         Stopwatch DiskReadTime { get; set; }
         Stopwatch DiskWriteTime { get; set; }
         long InputWaitMilliseconds { get; set; }
         long OutputWaitMilliseconds { get; set; }
-        int MonitorTimeoutMilliseconds { get; }
         long TotalBytesRead { get; set; }
         long TotalBytesWritten { get; set; }
         Stopwatch TotalTime { get; set; }
-        int WorkerThreads { get; set; }
 
-        void WriteEndStatistics();
         void WriteEarlyStatistics();
+        void WriteEndStatistics();
         void WriteStartMessages();
     }
 }

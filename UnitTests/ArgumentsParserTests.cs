@@ -20,7 +20,7 @@ namespace UnitTests
         public void ParseArguments_NoArguments_ReturnsFalse()
         {
             var sut = kernel.Get<IArgumentsParser>();
-            bool success = sut.ParseArguments(new string[0], out string error, out bool compress, out Stream input, out Stream output);
+            bool success = sut.ParseArguments(new string[0], out string error, out Stream input, out Stream output);
             Assert.IsFalse(success);
         }
 
@@ -28,7 +28,7 @@ namespace UnitTests
         public void ParseArguments_NoArguments_ReturnsError()
         {
             var sut = kernel.Get<IArgumentsParser>();
-            bool success = sut.ParseArguments(new string[0], out string error, out bool compress, out Stream input, out Stream output);
+            bool success = sut.ParseArguments(new string[0], out string error, out Stream input, out Stream output);
             Assert.IsFalse(string.IsNullOrEmpty(error));
         }
 
@@ -36,7 +36,7 @@ namespace UnitTests
         public void ParseArguments_UnknownWord_ReturnsFalse()
         {
             var sut = kernel.Get<IArgumentsParser>();
-            bool success = sut.ParseArguments(new string[] {"xxx", "", "" }, out string error, out bool compress, out Stream input, out Stream output);
+            bool success = sut.ParseArguments(new string[] {"xxx", "", "" }, out string error, out Stream input, out Stream output);
             Assert.IsFalse(success);
             Assert.IsFalse(string.IsNullOrEmpty(error));
         }

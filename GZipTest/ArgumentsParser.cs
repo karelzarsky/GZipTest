@@ -1,15 +1,21 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 
 namespace GZipTest
 {
     public class ArgumentsParser : IArgumentsParser
     {
-        public bool ParseArguments(string[] args, out string msg, out bool compress, out Stream input, out Stream output)
+        private readonly ISettings settings;
+
+        public ArgumentsParser(ISettings settings)
+        {
+            this.settings = settings;
+        }
+        public bool ParseArguments(string[] args, out string msg, out Stream input, out Stream output)
         {
             msg = null;
             input = output = null;
-            compress = false;
             if (args.Length != 3 ||
                 (!args[0].Equals("compress", StringComparison.OrdinalIgnoreCase) &&
                   args[0].Equals("decompress", StringComparison.OrdinalIgnoreCase)))
@@ -22,7 +28,7 @@ namespace GZipTest
             }
             if (args[0].Equals("compress", StringComparison.OrdinalIgnoreCase))
             {
-                compress = true;
+                settings.Mode = CompressionMode.Compress;
             }
             return OpenSourceFile(args, out msg, out input) && OpenDestinationFile(args, out msg, out output);
         }
