@@ -38,9 +38,17 @@ namespace GZipTest
                         stats.DiskReadTime.Start();
                         if (settings.Mode == System.IO.Compression.CompressionMode.Decompress)
                         {
-                            block.SequenceNr = (long)formatter.Deserialize(stream);
-                            block.Size = (int)formatter.Deserialize(stream);
-                            bytesRead = stream.Read(block.Data, 0, block.Size);
+                            long seq = (long)formatter.Deserialize(stream);
+                            if (seq != counter)
+                                throw (new InvalidDataException());
+                            int size = (int)formatter.Deserialize(stream);
+                            if (size > block.Data.Length)
+                            {
+                                block.Data = new byte[(int)(size * 1.2)];
+                            }
+                            block.SequenceNr = seq;
+                            block.Size = size;
+                            bytesRead = stream.Read(block.Data, 0, size);
                         }
                         else
                         {
@@ -58,9 +66,15 @@ namespace GZipTest
             catch (System.Runtime.Serialization.SerializationException)
             {
                 // End of stream reached
+                // Thread can exit gracefully.
             }
-            stream.Dispose();
+            finally
+            {
+                stream.Dispose();
+            }
             settings.TotalBlocks = counter;
+
+            // NULL blocks signalize workers that work is complete.
             for (int i = 0; i <= settings.WorkerThreads; i++)
             {
                 readBuffer.FilledBlocks.Enqueue(null);

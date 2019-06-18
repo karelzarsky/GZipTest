@@ -4,7 +4,7 @@
     {
         public long SequenceNr { get; set; } = -1;
         public int Size { get; set; } = 0;
-        public byte[] Data { get; }
+        public byte[] Data { get; set; }
 
         public DataBlock(long size)
         {

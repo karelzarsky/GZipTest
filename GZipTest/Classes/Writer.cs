@@ -26,25 +26,31 @@ namespace GZipTest
         /// <param name="destination"></param>
         public void WriteToStream(Stream destination)
         {
-            long counter = 0;
-            while (counter != settings.TotalBlocks)
+            try
             {
-                if (source.TryRetrieve(counter, out DataBlock block))
+                long counter = 0;
+                while (counter != settings.TotalBlocks)
                 {
-                    if (settings.Mode == System.IO.Compression.CompressionMode.Compress)
+                    if (source.TryRetrieve(counter, out DataBlock block))
                     {
-                        formatter.Serialize(destination, block.SequenceNr);
-                        formatter.Serialize(destination, block.Size);
+                        if (settings.Mode == System.IO.Compression.CompressionMode.Compress)
+                        {
+                            formatter.Serialize(destination, block.SequenceNr);
+                            formatter.Serialize(destination, block.Size);
+                        }
+                        stats.TotalBytesWritten += block.Size;
+                        stats.DiskWriteTime.Start();
+                        destination.Write(block.Data, 0, block.Size);
+                        stats.DiskWriteTime.Stop();
+                        counter++;
                     }
-                    stats.TotalBytesWritten += block.Size;
-                    stats.DiskWriteTime.Start();
-                    destination.Write(block.Data, 0, block.Size);
-                    stats.DiskWriteTime.Stop();
-                    counter++;
+                    stats.WriteEarlyStatistics();
                 }
-                stats.WriteEarlyStatistics();
             }
-            destination.Close();
+            finally
+            {
+                destination.Dispose();
+            }
         }
     }
 }

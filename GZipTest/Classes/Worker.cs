@@ -27,10 +27,10 @@ namespace GZipTest
         }
 
         /// <summary>
-        /// Retrive one block from read queue.
+        /// Retrieve one block from read queue.
         /// Compress block.
-        /// Send it to buffer for writing to file.
-        /// Repeat until everithing is processed.
+        /// Send result to write buffer.
+        /// Repeat until everything is processed.
         /// </summary>
         public void DoCompression()
         {

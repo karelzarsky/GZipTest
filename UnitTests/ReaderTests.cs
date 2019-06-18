@@ -17,8 +17,10 @@ namespace UnitTests
 
         private void PrepareReader(out IReadBuffer readBuffer, out IReader sut)
         {
-            readBuffer = new ReadBuffer(kernel.Get<ISettings>(), kernel.Get<IBlockQueue>(), kernel.Get<IBlockQueue>(), 0);
-            sut = new Reader(kernel.Get<IStatistics>(), kernel.Get<ISettings>(), readBuffer);
+            var settings = kernel.Get<ISettings>();
+            settings.Mode = System.IO.Compression.CompressionMode.Compress;
+            readBuffer = new ReadBuffer(settings, kernel.Get<IBlockQueue>(), kernel.Get<IBlockQueue>(), 0);
+            sut = new Reader(kernel.Get<IStatistics>(), settings, readBuffer);
         }
 
         [TestMethod]

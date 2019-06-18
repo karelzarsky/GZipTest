@@ -28,12 +28,12 @@ namespace GZipTest
             try
             {
                 queue.Enqueue(block);
-                wh.Set();
             }
             finally
             {
                 Monitor.Exit(this);
             }
+            wh.Set();
         }
 
         /// <summary>
@@ -54,11 +54,8 @@ namespace GZipTest
                         if (block == null) return true;
                     }
                 if (block != null)
-                {
                     return true;
-                }
-                else
-                    wh.WaitOne();
+                wh.WaitOne();
             }
         }
 
