@@ -10,6 +10,7 @@ namespace GZipTest
         public long BlockSizeBytes => 1048576;
         public CompressionMode Mode { get; set; } = CompressionMode.Decompress;
         public int WriteBufferCapacity => WorkerThreads * 4;
+        public int ReadBufferCapacity => WorkerThreads * 4;
         public long TotalBlocks { get; set; } = -1;
     }
 }

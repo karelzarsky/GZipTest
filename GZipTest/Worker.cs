@@ -12,20 +12,22 @@ namespace GZipTest
         private readonly IBlockDictionary writeDictionary;
         private readonly IStatistics stats;
         private readonly ISettings settings;
+        private readonly IReadBuffer readBuffer;
 
-        public Worker(IBlockDictionary writeDictionary, IStatistics stats, ISettings settings)
+        public Worker(IReadBuffer readBuffer, IBlockDictionary writeBuffer, IStatistics stats, ISettings settings)
         {
-            this.writeDictionary = writeDictionary;
+            this.writeDictionary = writeBuffer;
             this.stats = stats;
             this.settings = settings;
+            this.readBuffer = readBuffer;
         }
 
-        public void DoCompression(IBlockQueue filled, IBlockQueue empty)
+        public void DoCompression()
         {
             while (true)
             {
                 inputWaitTime.Start();
-                if (filled.TryDequeue(out DataBlock block))
+                if (readBuffer.FilledBlocks.TryDequeue(out DataBlock block))
                 {
                     if (block == null) break;
                     inputWaitTime.Stop();
@@ -36,7 +38,7 @@ namespace GZipTest
                     writeDictionary.Add(new DataBlock(compressedBlock, block.SequenceNr));
                     outputWaitTime.Stop();
                     inputWaitTime.Start();
-                    empty.Enqueue(block);
+                    readBuffer.EmptyBlocks.Enqueue(block);
                 }
                 inputWaitTime.Stop();
             }

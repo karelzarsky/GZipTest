@@ -63,8 +63,8 @@ namespace GZipTest
             Console.WriteLine("================");
             Console.WriteLine($"Peak working memory: {PeakMemoryMB:F0} MB");
             Console.WriteLine($"Total throughput: {Throughput:F3} MB/s");
-            Console.WriteLine($"Time spent reading and waiting for input queues: {InputWaitPercent:P3}");
-            Console.WriteLine($"Time spent writing and waiting for output buffer: {OutputWaitPercent:P3}");
+            Console.WriteLine($"Time spent dequeuing and waiting for input queues: {InputWaitPercent:P3}");
+            Console.WriteLine($"Time spent storing and waiting for output buffer: {OutputWaitPercent:P3}");
             Console.WriteLine($"Average compresss speed: {CompressSpeed:F0} MB/s each thread, Workers utilization: {WorkerUtilization:P3}");
             Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reader thread utilization: {ReadUtilization:P3}");
             Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writer thread utilization: {WriteUtilization:P3}");

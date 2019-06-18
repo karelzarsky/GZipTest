@@ -15,34 +15,36 @@ namespace UnitTests
             kernel.Load(System.Reflection.Assembly.GetExecutingAssembly());
         }
 
-        [TestMethod]
-        public void BlockReader_FillQueue_RemovesItemsFromInputQueue()
+        private void PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut)
         {
-            var inputQueue = kernel.Get<IBlockQueue>();
-            var outputQueue = kernel.Get<IBlockQueue>();
-            var sut = kernel.Get<IBlockReader>();
-            var stream = new MemoryStream(new byte[] {1, 2, 3, 4, 5, 6, 7});
-            inputQueue.Enqueue(new DataBlock(100));
-            inputQueue.Enqueue(new DataBlock(100));
+            readBuffer = new ReadBuffer(kernel.Get<ISettings>(), kernel.Get<IBlockQueue>(), kernel.Get<IBlockQueue>(), 0);
+            sut = new BlockReader(kernel.Get<IStatistics>(), kernel.Get<ISettings>(), readBuffer);
+        }
 
-            sut.FillQueue(stream, inputQueue, outputQueue);
-            bool canDequeue = inputQueue.TryDequeue(out DataBlock b);
+        [TestMethod]
+        public void BlockReader_FillQueue_RemovesItemsFromEmptyBlocks()
+        {
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7 });
+            readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
+            readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
+
+            sut.FillQueue(stream);
+            bool canDequeue = readBuffer.EmptyBlocks.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(false, canDequeue);
         }
 
         [TestMethod]
-        public void BlockReader_FillQueue_AddsItemsToOutputQueue()
+        public void BlockReader_FillQueue_AddsItemsToFilledBlocks()
         {
-            var inputQueue = kernel.Get<IBlockQueue>();
-            var outputQueue = kernel.Get<IBlockQueue>();
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
             var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7 });
-            inputQueue.Enqueue(new DataBlock(100));
-            inputQueue.Enqueue(new DataBlock(100));
-            var sut = kernel.Get<IBlockReader>();
+            readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
+            readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
 
-            sut.FillQueue(stream, inputQueue, outputQueue);
-            bool canDequeue = outputQueue.TryDequeue(out DataBlock b);
+            sut.FillQueue(stream);
+            bool canDequeue = readBuffer.FilledBlocks.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(true, canDequeue);
         }
@@ -50,15 +52,13 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_FillsDataFromStream()
         {
-            var inputQueue = kernel.Get<IBlockQueue>();
-            var outputQueue = kernel.Get<IBlockQueue>();
-            var sut = kernel.Get<IBlockReader>();
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
-            inputQueue.Enqueue(new DataBlock(100));
-            inputQueue.Enqueue(new DataBlock(100));
+            readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
+            readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
 
-            sut.FillQueue(stream, inputQueue, outputQueue);
-            bool canDequeue = outputQueue.TryDequeue(out DataBlock b);
+            sut.FillQueue(stream);
+            bool canDequeue = readBuffer.FilledBlocks.TryDequeue(out DataBlock b);
 
             Assert.AreEqual(0, b.Data[0]);
             Assert.AreEqual(1, b.Data[1]);
@@ -67,44 +67,57 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public void BlockReader_FillQueue_SplitsDataToBlocks()
+        public void BlockReader_FillQueueCoplete_AddsNullBlockToFilledBlocks()
         {
-            var inputQueue = kernel.Get<IBlockQueue>();
-            var outputQueue = kernel.Get<IBlockQueue>();
-            var sut = kernel.Get<IBlockReader>();
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
-                inputQueue.Enqueue(new DataBlock(5));
+                readBuffer.EmptyBlocks.Enqueue(new DataBlock(5));
             }
 
-            sut.FillQueue(stream, inputQueue, outputQueue);
-            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
-            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
-            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
+            sut.FillQueue(stream);
+            readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
+            readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
+            readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
+
+            Assert.AreEqual(null, b3);
+        }
+
+        [TestMethod]
+        public void BlockReader_FillQueue_SplitsDataToBlocks()
+        {
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
+            for (int i = 0; i < 9; i++)
+            {
+                readBuffer.EmptyBlocks.Enqueue(new DataBlock(5));
+            }
+
+            sut.FillQueue(stream);
+            bool canDequque1 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
+            bool canDequque2 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
+            bool canDequque3 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
 
             Assert.AreEqual(true, canDequque1);
             Assert.AreEqual(true, canDequque2);
-            Assert.AreEqual(false, canDequque3);
             Assert.AreEqual(7, b2.Data[2]);
         }
 
         [TestMethod]
         public void BlockReader_FillQueue_CountsSequenceNumbers()
         {
-            var inputQueue = kernel.Get<IBlockQueue>();
-            var outputQueue = kernel.Get<IBlockQueue>();
-            var sut = kernel.Get<IBlockReader>();
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
-                inputQueue.Enqueue(new DataBlock(1));
+                readBuffer.EmptyBlocks.Enqueue(new DataBlock(1));
             }
 
-            sut.FillQueue(stream, inputQueue, outputQueue);
-            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
-            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
-            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
+            sut.FillQueue(stream);
+            bool canDequque1 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
+            bool canDequque2 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
+            bool canDequque3 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
 
             Assert.AreEqual(0, b1.SequenceNr);
             Assert.AreEqual(1, b2.SequenceNr);
@@ -114,19 +127,17 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_CountsBlockSize()
         {
-            var inputQueue = kernel.Get<IBlockQueue>();
-            var outputQueue = kernel.Get<IBlockQueue>();
-            var sut = kernel.Get<IBlockReader>();
+            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
-                inputQueue.Enqueue(new DataBlock(5));
+                readBuffer.EmptyBlocks.Enqueue(new DataBlock(5));
             }
 
-            sut.FillQueue(stream, inputQueue, outputQueue);
-            bool canDequque1 = outputQueue.TryDequeue(out DataBlock b1);
-            bool canDequque2 = outputQueue.TryDequeue(out DataBlock b2);
-            bool canDequque3 = outputQueue.TryDequeue(out DataBlock b3);
+            sut.FillQueue(stream);
+            bool canDequque1 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
+            bool canDequque2 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
+            bool canDequque3 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
 
             Assert.AreEqual(5, b1.Size);
             Assert.AreEqual(3, b2.Size);

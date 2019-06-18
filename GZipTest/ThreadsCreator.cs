@@ -13,6 +13,7 @@ namespace GZipTest
         private readonly IBlockQueue filledSourceBlocks;
         private readonly IStatistics stats;
         private readonly ISettings settings;
+        private readonly IReadBuffer readBuffer;
 
         public ThreadsCreator(IBlockDictionary outputBuffer,
             IBlockReader blockReader,
@@ -20,7 +21,8 @@ namespace GZipTest
             IBlockQueue unusedSourceBlocks,
             IBlockQueue filledSourceBlocks,
             IStatistics stats,
-            ISettings settings)
+            ISettings settings,
+            IReadBuffer readBuffer)
         {
             this.outputBuffer = outputBuffer;
             this.blockReader = blockReader;
@@ -29,6 +31,7 @@ namespace GZipTest
             this.filledSourceBlocks = filledSourceBlocks;
             this.stats = stats;
             this.settings = settings;
+            this.readBuffer = readBuffer;
         }
 
         public void StartThreads(Stream inputStream, Stream outputStream)
@@ -49,7 +52,7 @@ namespace GZipTest
             {
                 unusedSourceBlocks.Enqueue(new DataBlock(settings.BlockSizeBytes));
                 unusedSourceBlocks.Enqueue(new DataBlock(settings.BlockSizeBytes));
-                var worker = new Thread(_ => new Worker(outputBuffer, stats, settings).DoCompression(filledSourceBlocks, unusedSourceBlocks))
+                var worker = new Thread(_ => new Worker(readBuffer, outputBuffer, stats, settings).DoCompression())
                 {
                     Name = $"Worker {i}",
                     Priority = ThreadPriority.BelowNormal
@@ -62,7 +65,7 @@ namespace GZipTest
 
         private Thread StartReader(Stream inputStream)
         {
-            var readerThread = new Thread(_ => blockReader.FillQueue(inputStream, unusedSourceBlocks, filledSourceBlocks)) { Name = "Reader" };
+            var readerThread = new Thread(_ => blockReader.FillQueue(inputStream)) { Name = "Reader" };
             readerThread.Start();
             return readerThread;
         }

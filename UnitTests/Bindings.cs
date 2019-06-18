@@ -16,6 +16,7 @@ namespace GZipTest
             Bind<IThreadsCreator>().To<ThreadsCreator>();
             Bind<IArgumentsParser>().To<ArgumentsParser>();
             Bind<ISettings>().To<Settings>();
+            Bind<IReadBuffer>().To<ReadBuffer>().InSingletonScope();
         }
     }
 }

@@ -6,21 +6,23 @@ namespace GZipTest
     {
         private readonly IStatistics stats;
         private readonly ISettings settings;
+        private readonly IReadBuffer readBuffer;
 
-        public BlockReader(IStatistics stats, ISettings settings)
+        public BlockReader(IStatistics stats, ISettings settings, IReadBuffer readBuffer)
         {
             this.stats = stats;
             this.settings = settings;
+            this.readBuffer = readBuffer;
         }
 
-        public void FillQueue(Stream stream, IBlockQueue queueEmpty, IBlockQueue queueFilled)
+        public void FillQueue(Stream stream)
         {
             long counter = 0;
             int bytesRead;
 
             while (stream.CanRead)
             {
-                if (queueEmpty.TryDequeue(out DataBlock block))
+                if (readBuffer.EmptyBlocks.TryDequeue(out DataBlock block))
                 {
                     stats.DiskReadTime.Start();
                     bytesRead = stream.Read(block.Data, 0, block.Data.Length);
@@ -29,16 +31,16 @@ namespace GZipTest
                     block.Size = bytesRead;
                     stats.TotalBytesRead += bytesRead;
                     block.SequenceNr = counter++;
-                    queueFilled.Enqueue(block);
+                    readBuffer.FilledBlocks.Enqueue(block);
                 }
             }
             stream.Dispose();
             settings.TotalBlocks = counter;
             for (int i = 0; i <= settings.WorkerThreads; i++)
             {
-                queueFilled.Enqueue(null);
+                readBuffer.FilledBlocks.Enqueue(null);
             }
-            queueFilled.PulseAll();
+            readBuffer.FilledBlocks.PulseAll();
         }
     }
 }
