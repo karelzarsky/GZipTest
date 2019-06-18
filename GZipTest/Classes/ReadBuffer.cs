@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GZipTest
+﻿namespace GZipTest
 {
+    /// <summary>
+    /// Data structure holds allocated memory blocks for reading from file stream.
+    /// Byte arrays are used over and over again without needing to allocate more and disposing used ones.
+    /// </summary>
     public class ReadBuffer : IReadBuffer
     {
         private readonly ISettings settings;

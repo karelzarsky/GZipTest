@@ -2,9 +2,8 @@
 {
     public interface IBlockQueue
     {
-        bool TryDequeue(out DataBlock block);
+        bool Dequeue(out DataBlock block);
         void Enqueue(DataBlock block);
-        bool Empty();
-        void PulseAll();
+        bool IsEmpty();
     }
 }

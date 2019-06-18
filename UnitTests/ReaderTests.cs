@@ -30,9 +30,9 @@ namespace UnitTests
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
 
             sut.FillQueue(stream);
-            bool canDequeue = readBuffer.EmptyBlocks.TryDequeue(out DataBlock b);
+            bool empty = readBuffer.EmptyBlocks.IsEmpty();
 
-            Assert.AreEqual(false, canDequeue);
+            Assert.AreEqual(true, empty);
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace UnitTests
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
 
             sut.FillQueue(stream);
-            bool canDequeue = readBuffer.FilledBlocks.TryDequeue(out DataBlock b);
+            bool canDequeue = readBuffer.FilledBlocks.Dequeue(out DataBlock b);
 
             Assert.AreEqual(true, canDequeue);
         }
@@ -58,7 +58,7 @@ namespace UnitTests
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
 
             sut.FillQueue(stream);
-            bool canDequeue = readBuffer.FilledBlocks.TryDequeue(out DataBlock b);
+            bool canDequeue = readBuffer.FilledBlocks.Dequeue(out DataBlock b);
 
             Assert.AreEqual(0, b.Data[0]);
             Assert.AreEqual(1, b.Data[1]);
@@ -77,9 +77,9 @@ namespace UnitTests
             }
 
             sut.FillQueue(stream);
-            readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
-            readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
-            readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
+            readBuffer.FilledBlocks.Dequeue(out DataBlock b1);
+            readBuffer.FilledBlocks.Dequeue(out DataBlock b2);
+            readBuffer.FilledBlocks.Dequeue(out DataBlock b3);
 
             Assert.AreEqual(null, b3);
         }
@@ -95,9 +95,9 @@ namespace UnitTests
             }
 
             sut.FillQueue(stream);
-            bool canDequque1 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
-            bool canDequque2 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
-            bool canDequque3 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
+            bool canDequque1 = readBuffer.FilledBlocks.Dequeue(out DataBlock b1);
+            bool canDequque2 = readBuffer.FilledBlocks.Dequeue(out DataBlock b2);
+            bool canDequque3 = readBuffer.FilledBlocks.Dequeue(out DataBlock b3);
 
             Assert.AreEqual(true, canDequque1);
             Assert.AreEqual(true, canDequque2);
@@ -115,9 +115,9 @@ namespace UnitTests
             }
 
             sut.FillQueue(stream);
-            bool canDequque1 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
-            bool canDequque2 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
-            bool canDequque3 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
+            bool canDequque1 = readBuffer.FilledBlocks.Dequeue(out DataBlock b1);
+            bool canDequque2 = readBuffer.FilledBlocks.Dequeue(out DataBlock b2);
+            bool canDequque3 = readBuffer.FilledBlocks.Dequeue(out DataBlock b3);
 
             Assert.AreEqual(0, b1.SequenceNr);
             Assert.AreEqual(1, b2.SequenceNr);
@@ -135,9 +135,9 @@ namespace UnitTests
             }
 
             sut.FillQueue(stream);
-            bool canDequque1 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b1);
-            bool canDequque2 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b2);
-            bool canDequque3 = readBuffer.FilledBlocks.TryDequeue(out DataBlock b3);
+            bool canDequque1 = readBuffer.FilledBlocks.Dequeue(out DataBlock b1);
+            bool canDequque2 = readBuffer.FilledBlocks.Dequeue(out DataBlock b2);
+            bool canDequque3 = readBuffer.FilledBlocks.Dequeue(out DataBlock b3);
 
             Assert.AreEqual(5, b1.Size);
             Assert.AreEqual(3, b2.Size);

@@ -2,6 +2,10 @@
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Reading thread will buffer new data blocks in advance for Workers, so they don't have to wait for I/O operation and use majority of time for data crunching.
+    /// Same piecies of allocated memory are used over and over again.
+    /// </summary>
     public class Reader : IReader
     {
         private readonly IStatistics stats;
@@ -15,6 +19,10 @@ namespace GZipTest
             this.readBuffer = readBuffer;
         }
 
+        /// <summary>
+        /// Receive data from stream, split it into blocks and store them in the queue for later processing by worker threads.
+        /// </summary>
+        /// <param name="stream"></param>
         public void FillQueue(Stream stream)
         {
             long counter = 0;
@@ -22,7 +30,7 @@ namespace GZipTest
 
             while (stream.CanRead)
             {
-                if (readBuffer.EmptyBlocks.TryDequeue(out DataBlock block))
+                if (readBuffer.EmptyBlocks.Dequeue(out DataBlock block))
                 {
                     stats.DiskReadTime.Start();
                     bytesRead = stream.Read(block.Data, 0, block.Data.Length);
@@ -40,7 +48,6 @@ namespace GZipTest
             {
                 readBuffer.FilledBlocks.Enqueue(null);
             }
-            readBuffer.FilledBlocks.PulseAll();
         }
     }
 }

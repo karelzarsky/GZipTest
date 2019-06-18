@@ -4,6 +4,11 @@ using System.Threading;
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Starts one backgroud thread for file reader.
+    /// Starts several worker threads depending on CPU cores count.
+    /// Handles writing to destination file itself using main thread.
+    /// </summary>
     public class ThreadsCreator : IThreadsCreator
     {
         private readonly IBlockDictionary outputBuffer;
@@ -45,6 +50,10 @@ namespace GZipTest
             stats.WriteEndStatistics();
         }
 
+        /// <summary>
+        /// Background workers for data crunching.
+        /// </summary>
+        /// <returns></returns>
         private List<Thread> StartWorkers()
         {
             var workers = new List<Thread>();

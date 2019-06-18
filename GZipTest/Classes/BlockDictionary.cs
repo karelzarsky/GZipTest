@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Implement simple thread safe buffer for writing data block in right order.
+    /// </summary>
     public class BlockDictionary : IBlockDictionary
     {
         private readonly Dictionary<long, DataBlock> dictionary = new Dictionary<long, DataBlock>();
@@ -14,6 +17,10 @@ namespace GZipTest
             this.settings = settings;
         }
 
+        /// <summary>
+        /// Add new block to buffer.
+        /// If there is too much data, it will wait.
+        /// </summary>
         public void Add(DataBlock block)
         {
             Monitor.Enter(this);
@@ -32,6 +39,13 @@ namespace GZipTest
             }
         }
 
+        /// <summary>
+        /// Outputs next data block in sequence.
+        /// If it is not present yet, it will wait.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="block"></param>
+        /// <returns></returns>
         public bool TryRetrieve(long key, out DataBlock block)
         {
             block = null;
@@ -43,9 +57,12 @@ namespace GZipTest
                     Monitor.Wait(this, settings.MonitorTimeoutMilliseconds);
                 }
                 bool success = dictionary.TryGetValue(key, out block);
-                dictionary.Remove(key);
-                lastRetreivedKey = key;
-                Monitor.PulseAll(this);
+                if (success)
+                {
+                    dictionary.Remove(key);
+                    lastRetreivedKey = key;
+                    Monitor.PulseAll(this);
+                }
                 return success;
             }
             finally
@@ -54,7 +71,7 @@ namespace GZipTest
             }
         }
 
-        public bool Empty()
+        public bool IsEmpty()
         {
             Monitor.Enter(this);
             try

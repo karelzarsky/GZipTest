@@ -18,7 +18,7 @@ namespace UnitTests
         {
             var sut = kernel.Get<IBlockDictionary>();
 
-            bool res = sut.Empty();
+            bool res = sut.IsEmpty();
 
             Assert.AreEqual(true, res);
         }
@@ -29,7 +29,7 @@ namespace UnitTests
             var sut = kernel.Get<IBlockDictionary>();
             sut.Add(new DataBlock(0));
 
-            bool res = sut.Empty();
+            bool res = sut.IsEmpty();
 
             Assert.AreEqual(false, res);
         }
@@ -63,7 +63,7 @@ namespace UnitTests
             sut.Add(block);
 
             bool success = sut.TryRetrieve(nr, out DataBlock res);
-            bool empty = sut.Empty();
+            bool empty = sut.IsEmpty();
 
             Assert.AreEqual(true, empty);
         }
@@ -78,7 +78,7 @@ namespace UnitTests
 
             bool success1 = sut.TryRetrieve(nr, out DataBlock res);
             bool success2 = sut.TryRetrieve(nr+1, out DataBlock res2);
-            bool empty = sut.Empty();
+            bool empty = sut.IsEmpty();
 
             Assert.AreEqual(true, success1);
             Assert.AreEqual(true, success2);

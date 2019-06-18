@@ -4,9 +4,13 @@ using System.IO.Compression;
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Main data processing.
+    /// Measures time spent computing and waiting for data.
+    /// </summary>
     public class Worker : IWorker
     {
-        Stopwatch compressionTime = new Stopwatch();
+        Stopwatch processingTime = new Stopwatch();
         Stopwatch inputWaitTime = new Stopwatch();
         Stopwatch outputWaitTime = new Stopwatch();
         private readonly IBlockDictionary writeDictionary;
@@ -22,30 +26,33 @@ namespace GZipTest
             this.readBuffer = readBuffer;
         }
 
+        /// <summary>
+        /// Retrive one block from read queue.
+        /// Compress block.
+        /// Send it to buffer for writing to file.
+        /// Repeat until everithing is processed.
+        /// </summary>
         public void DoCompression()
         {
-            while (true)
+            inputWaitTime.Start();
+            while (readBuffer.FilledBlocks.Dequeue(out DataBlock block))
             {
-                inputWaitTime.Start();
-                if (readBuffer.FilledBlocks.TryDequeue(out DataBlock block))
-                {
-                    if (block == null) break;
-                    inputWaitTime.Stop();
-                    compressionTime.Start();
-                    var compressedBlock = CompressOneBlock(block);
-                    compressionTime.Stop();
-                    outputWaitTime.Start();
-                    writeDictionary.Add(new DataBlock(compressedBlock, block.SequenceNr));
-                    outputWaitTime.Stop();
-                    inputWaitTime.Start();
-                    readBuffer.EmptyBlocks.Enqueue(block);
-                }
+                if (block == null) break;
                 inputWaitTime.Stop();
+                processingTime.Start();
+                var compressedBlock = CompressOneBlock(block);
+                processingTime.Stop();
+                outputWaitTime.Start();
+                writeDictionary.Add(new DataBlock(compressedBlock, block.SequenceNr));
+                outputWaitTime.Stop();
+                inputWaitTime.Start();
+                readBuffer.EmptyBlocks.Enqueue(block);
             }
+            inputWaitTime.Stop();
             lock (stats)
             {
                 stats.InputWaitMilliseconds += inputWaitTime.ElapsedMilliseconds;
-                stats.CompressionTimeMilliseconds += compressionTime.ElapsedMilliseconds;
+                stats.CompressionTimeMilliseconds += processingTime.ElapsedMilliseconds;
                 stats.OutputWaitMilliseconds += outputWaitTime.ElapsedMilliseconds;
             }
         }

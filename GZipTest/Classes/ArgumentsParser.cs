@@ -12,6 +12,15 @@ namespace GZipTest
         {
             this.settings = settings;
         }
+
+        /// <summary>
+        /// Parse commandline arguments
+        /// </summary>
+        /// <param name="args">arguments</param>
+        /// <param name="msg">error message</param>
+        /// <param name="input">stream to read from</param>
+        /// <param name="output">stream to write to</param>
+        /// <returns>True when all arguments are correct and files were successfully opened.</returns>
         public bool ParseArguments(string[] args, out string msg, out Stream input, out Stream output)
         {
             msg = null;
@@ -33,6 +42,9 @@ namespace GZipTest
             return OpenSourceFile(args, out msg, out input) && OpenDestinationFile(args, out msg, out output);
         }
 
+        /// <summary>
+        /// Open file stream for readig data
+        /// </summary>
         private bool OpenSourceFile(string[] args, out string msg, out Stream input)
         {
             msg = null;
@@ -51,6 +63,9 @@ namespace GZipTest
             catch (Exception ex) when (ex is ArgumentException || ex is ArgumentNullException || ex is NotSupportedException) { msg = "Invalid input path."; return false; }
         }
 
+        /// <summary>
+        /// Open file stream for writing data
+        /// </summary>
         private bool OpenDestinationFile(string[] args, out string msg, out Stream output)
         {
             msg = null;

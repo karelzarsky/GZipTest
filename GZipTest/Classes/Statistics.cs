@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Performance calculations and output
+    /// </summary>
     public class Statistics : IStatistics
     {
         private const int megabyte = 1048576;
@@ -27,9 +30,9 @@ namespace GZipTest
         public long InputWaitMilliseconds { get; set; } = 0;
         public long OutputWaitMilliseconds { get; set; } = 0;
         public long CompressionTimeMilliseconds { get; set; } = 0;
-        public Stopwatch TotalTime { get; set; } = Stopwatch.StartNew();
-        public Stopwatch DiskReadTime { get; set; } = new Stopwatch();
-        public Stopwatch DiskWriteTime { get; set; } = new Stopwatch();
+        public Stopwatch TotalTime { get; } = Stopwatch.StartNew();
+        public Stopwatch DiskReadTime { get; } = new Stopwatch();
+        public Stopwatch DiskWriteTime { get; } = new Stopwatch();
 
         public Statistics(ISettings settings)
         {

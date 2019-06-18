@@ -11,7 +11,7 @@ namespace GZipTest
         long OutputWaitMilliseconds { get; set; }
         long TotalBytesRead { get; set; }
         long TotalBytesWritten { get; set; }
-        Stopwatch TotalTime { get; set; }
+        Stopwatch TotalTime { get; }
 
         void WriteEarlyStatistics();
         void WriteEndStatistics();

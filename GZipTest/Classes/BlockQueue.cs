@@ -3,23 +3,32 @@ using System.Threading;
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Implement simple thread safe queue of DataBlocks.
+    /// First in first out.
+    /// </summary>
     public class BlockQueue : IBlockQueue
     {
         private Queue<DataBlock> queue = new Queue<DataBlock>();
         private readonly ISettings settings;
+        private readonly EventWaitHandle wh = new AutoResetEvent(false);
 
         public BlockQueue(ISettings settings)
         {
             this.settings = settings;
         }
 
+        /// <summary>
+        /// Add new block to the queue.
+        /// </summary>
+        /// <param name="block"></param>
         public void Enqueue(DataBlock block)
         {
             Monitor.Enter(this);
             try
             {
                 queue.Enqueue(block);
-                Monitor.Pulse(this);
+                wh.Set();
             }
             finally
             {
@@ -27,59 +36,38 @@ namespace GZipTest
             }
         }
 
-        public bool TryDequeue(out DataBlock block)
+        /// <summary>
+        /// Output is next data block for processing.
+        /// Block is removed from queue.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns>True when there are no more data to process.</returns>
+        public bool Dequeue(out DataBlock block)
         {
-            block = null;
-            Monitor.Enter(this);
-            try
+            while (true)
             {
-                if (queue.Count == 0)
-                {
-                    Monitor.Wait(this, settings.MonitorTimeoutMilliseconds);
-                }
-                try
-                {
+                block = null;
+                lock (this)
                     if (queue.Count > 0)
                     {
                         block = queue.Dequeue();
-                        Monitor.Pulse(this);
-                        return true;
+                        if (block == null) return true;
                     }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                catch (System.InvalidOperationException)
+                if (block != null)
                 {
-                    return false;
+                    return true;
                 }
-            }
-            finally
-            {
-                Monitor.Exit(this);
+                else
+                    wh.WaitOne();
             }
         }
 
-        public bool Empty()
+        public bool IsEmpty()
         {
             Monitor.Enter(this);
             try
             {
                 return queue.Count == 0;
-            }
-            finally
-            {
-                Monitor.Exit(this);
-            }
-        }
-
-        public void PulseAll()
-        {
-            Monitor.Enter(this);
-            try
-            {
-                Monitor.PulseAll(this);
             }
             finally
             {

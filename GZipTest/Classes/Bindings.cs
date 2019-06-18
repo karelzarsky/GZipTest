@@ -4,6 +4,9 @@ namespace GZipTest
 {
     public class Bindings : NinjectModule
     {
+        /// <summary>
+        /// Binding for dependency injection container
+        /// </summary>
         public override void Load()
         {
             Bind<IBlockDictionary>().To<BlockDictionary>().InSingletonScope();

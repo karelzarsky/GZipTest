@@ -3,6 +3,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GZipTest
 {
+    /// <summary>
+    /// Handling write buffer and storing processed data to output stream in the right order.
+    /// </summary>
     public class Writer : IWriter
     {
         private readonly IBlockDictionary source;
@@ -16,6 +19,10 @@ namespace GZipTest
             this.settings = settings;
         }
 
+        /// <summary>
+        /// Writes blocks to destination stream one at a time until done.
+        /// </summary>
+        /// <param name="destination"></param>
         public void WriteToStream(Stream destination)
         {
             long counter = 0;
