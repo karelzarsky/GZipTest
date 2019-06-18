@@ -2,7 +2,7 @@
 
 namespace GZipTest
 {
-    public interface IBlockWriter
+    public interface IWriter
     {
         void WriteToStream(Stream destination);
     }

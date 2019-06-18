@@ -3,13 +3,13 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GZipTest
 {
-    public class BlockWriter : IBlockWriter
+    public class Writer : IWriter
     {
         private readonly IBlockDictionary source;
         private readonly IStatistics stats;
         private readonly ISettings settings;
 
-        public BlockWriter(IBlockDictionary source, IStatistics stats, ISettings settings)
+        public Writer(IBlockDictionary source, IStatistics stats, ISettings settings)
         {
             this.source = source;
             this.stats = stats;

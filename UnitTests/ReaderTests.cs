@@ -6,25 +6,25 @@ using Ninject;
 namespace UnitTests
 {
     [TestClass]
-    public class BlockReaderTests
+    public class ReaderTests
     {
         StandardKernel kernel = new StandardKernel();
 
-        public BlockReaderTests()
+        public ReaderTests()
         {
             kernel.Load(System.Reflection.Assembly.GetExecutingAssembly());
         }
 
-        private void PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut)
+        private void PrepareReader(out IReadBuffer readBuffer, out IReader sut)
         {
             readBuffer = new ReadBuffer(kernel.Get<ISettings>(), kernel.Get<IBlockQueue>(), kernel.Get<IBlockQueue>(), 0);
-            sut = new BlockReader(kernel.Get<IStatistics>(), kernel.Get<ISettings>(), readBuffer);
+            sut = new Reader(kernel.Get<IStatistics>(), kernel.Get<ISettings>(), readBuffer);
         }
 
         [TestMethod]
         public void BlockReader_FillQueue_RemovesItemsFromEmptyBlocks()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7 });
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
@@ -38,7 +38,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_AddsItemsToFilledBlocks()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7 });
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
@@ -52,7 +52,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_FillsDataFromStream()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
             readBuffer.EmptyBlocks.Enqueue(new DataBlock(100));
@@ -69,7 +69,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueueCoplete_AddsNullBlockToFilledBlocks()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
@@ -87,7 +87,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_SplitsDataToBlocks()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
@@ -107,7 +107,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_CountsSequenceNumbers()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {
@@ -127,7 +127,7 @@ namespace UnitTests
         [TestMethod]
         public void BlockReader_FillQueue_CountsBlockSize()
         {
-            PrepareReader(out IReadBuffer readBuffer, out IBlockReader sut);
+            PrepareReader(out IReadBuffer readBuffer, out IReader sut);
             var stream = new MemoryStream(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
             for (int i = 0; i < 9; i++)
             {

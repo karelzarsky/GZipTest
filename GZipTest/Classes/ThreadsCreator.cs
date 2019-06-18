@@ -7,8 +7,8 @@ namespace GZipTest
     public class ThreadsCreator : IThreadsCreator
     {
         private readonly IBlockDictionary outputBuffer;
-        private readonly IBlockReader blockReader;
-        private readonly IBlockWriter blockWriter;
+        private readonly IReader blockReader;
+        private readonly IWriter blockWriter;
         private readonly IBlockQueue unusedSourceBlocks;
         private readonly IBlockQueue filledSourceBlocks;
         private readonly IStatistics stats;
@@ -16,8 +16,8 @@ namespace GZipTest
         private readonly IReadBuffer readBuffer;
 
         public ThreadsCreator(IBlockDictionary outputBuffer,
-            IBlockReader blockReader,
-            IBlockWriter blockWriter,
+            IReader blockReader,
+            IWriter blockWriter,
             IBlockQueue unusedSourceBlocks,
             IBlockQueue filledSourceBlocks,
             IStatistics stats,

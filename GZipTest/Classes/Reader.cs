@@ -2,13 +2,13 @@
 
 namespace GZipTest
 {
-    public class BlockReader : IBlockReader
+    public class Reader : IReader
     {
         private readonly IStatistics stats;
         private readonly ISettings settings;
         private readonly IReadBuffer readBuffer;
 
-        public BlockReader(IStatistics stats, ISettings settings, IReadBuffer readBuffer)
+        public Reader(IStatistics stats, ISettings settings, IReadBuffer readBuffer)
         {
             this.stats = stats;
             this.settings = settings;

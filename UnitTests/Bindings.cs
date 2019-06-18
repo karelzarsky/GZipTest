@@ -8,8 +8,8 @@ namespace GZipTest
         {
             Bind<IBlockDictionary>().To<BlockDictionary>();
             Bind<IBlockQueue>().To<BlockQueue>();
-            Bind<IBlockReader>().To<BlockReader>();
-            Bind<IBlockWriter>().To<BlockWriter>();
+            Bind<IReader>().To<Reader>();
+            Bind<IWriter>().To<Writer>();
             Bind<IDataBlock>().To<DataBlock>();
             Bind<IWorker>().To<Worker>();
             Bind<IStatistics>().To<Statistics>();

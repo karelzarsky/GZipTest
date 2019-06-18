@@ -2,7 +2,7 @@
 
 namespace GZipTest
 {
-    public interface IBlockReader
+    public interface IReader
     {
         void FillQueue(Stream stream);
     }
