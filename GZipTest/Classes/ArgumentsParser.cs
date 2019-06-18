@@ -27,7 +27,7 @@ namespace GZipTest
             input = output = null;
             if (args.Length != 3 ||
                 (!args[0].Equals("compress", StringComparison.OrdinalIgnoreCase) &&
-                  args[0].Equals("decompress", StringComparison.OrdinalIgnoreCase)))
+                 !args[0].Equals("decompress", StringComparison.OrdinalIgnoreCase)))
             {
                 msg = "Invalid arguments!\r\n" +
                 "- compressing: GZipTest.exe compress [original file name] [archive file name]\r\n" +

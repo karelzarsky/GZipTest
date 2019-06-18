@@ -40,7 +40,7 @@ namespace GZipTest
                 if (block == null) break;
                 inputWaitTime.Stop();
                 processingTime.Start();
-                var compressedBlock = CompressOneBlock(block);
+                var compressedBlock = settings.Mode == CompressionMode.Compress ? CompressOneBlock(block) : DecompressOneBlock(block);
                 processingTime.Stop();
                 outputWaitTime.Start();
                 writeDictionary.Add(new DataBlock(compressedBlock, block.SequenceNr));

@@ -10,7 +10,7 @@ namespace GZipTest
     {
         public int MonitorTimeoutMilliseconds => 100;
         public int WorkerThreads { get; } = Environment.ProcessorCount < 4 ? Environment.ProcessorCount : Environment.ProcessorCount - 1;
-        public long BlockSizeBytes => 1048576;
+        public long BlockSizeBytes => Mode == CompressionMode.Compress ? 1048576 : 1100000;
         public CompressionMode Mode { get; set; }
         public int WriteBufferCapacity => WorkerThreads * 2;
         public int ReadBufferCapacity => WorkerThreads * 2;

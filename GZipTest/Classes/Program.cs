@@ -25,6 +25,10 @@ namespace GZipTest
                 // Something went wrong
                 Console.WriteLine(error);
             }
+            catch (InvalidDataException)
+            {
+                Console.WriteLine("Data corruption detected!");
+            }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);

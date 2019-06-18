@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GZipTest
 {
@@ -11,6 +12,7 @@ namespace GZipTest
         private readonly IStatistics stats;
         private readonly ISettings settings;
         private readonly IReadBuffer readBuffer;
+        private BinaryFormatter formatter = new BinaryFormatter();
 
         public Reader(IStatistics stats, ISettings settings, IReadBuffer readBuffer)
         {
@@ -27,20 +29,35 @@ namespace GZipTest
         {
             long counter = 0;
             int bytesRead;
-
-            while (stream.CanRead)
+            try
             {
-                if (readBuffer.EmptyBlocks.Dequeue(out DataBlock block))
+                while (stream.CanRead)
                 {
-                    stats.DiskReadTime.Start();
-                    bytesRead = stream.Read(block.Data, 0, block.Data.Length);
-                    stats.DiskReadTime.Stop();
-                    if (bytesRead == 0) break;
-                    block.Size = bytesRead;
-                    stats.TotalBytesRead += bytesRead;
-                    block.SequenceNr = counter++;
-                    readBuffer.FilledBlocks.Enqueue(block);
+                    if (readBuffer.EmptyBlocks.Dequeue(out DataBlock block))
+                    {
+                        stats.DiskReadTime.Start();
+                        if (settings.Mode == System.IO.Compression.CompressionMode.Decompress)
+                        {
+                            block.SequenceNr = (long)formatter.Deserialize(stream);
+                            block.Size = (int)formatter.Deserialize(stream);
+                            bytesRead = stream.Read(block.Data, 0, block.Size);
+                        }
+                        else
+                        {
+                            bytesRead = stream.Read(block.Data, 0, block.Data.Length);
+                        }
+                        stats.DiskReadTime.Stop();
+                        if (bytesRead == 0) break;
+                        block.Size = bytesRead;
+                        stats.TotalBytesRead += bytesRead;
+                        block.SequenceNr = counter++;
+                        readBuffer.FilledBlocks.Enqueue(block);
+                    }
                 }
+            }
+            catch (System.Runtime.Serialization.SerializationException)
+            {
+                // End of stream reached
             }
             stream.Dispose();
             settings.TotalBlocks = counter;

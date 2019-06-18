@@ -41,7 +41,6 @@ namespace GZipTest
 
         public void WriteStartMessages()
         {
-            Console.WriteLine($"Block size: {Settings.BlockSizeBytes} bytes");
             Console.WriteLine($"Starting 1 reading thread and {Settings.WorkerThreads} worker threads.\r\n");
         }
 
@@ -68,10 +67,10 @@ namespace GZipTest
             Console.WriteLine($"Total throughput: {Throughput:F3} MB/s");
             Console.WriteLine($"Time spent dequeuing and waiting for input queues: {InputWaitPercent:P3}");
             Console.WriteLine($"Time spent storing and waiting for output buffer: {OutputWaitPercent:P3}");
-            Console.WriteLine($"Average compresss speed: {CompressSpeed:F0} MB/s each thread, Workers utilization: {WorkerUtilization:P3}");
+            Console.WriteLine($"Average compresss (decompress) speed: {CompressSpeed:F0} MB/s each thread, Workers utilization: {WorkerUtilization:P3}");
             Console.WriteLine($"Average disk reading speed: {DiskReadSpeed:F0} MB/s, Reader thread utilization: {ReadUtilization:P3}");
             Console.WriteLine($"Average disk writing speed: {DiskWriteSpeed:F0} MB/s, Writer thread utilization: {WriteUtilization:P3}");
-            Console.WriteLine($"Compression ratio: {CompressionRatio:P3}");
+            Console.WriteLine($"Compression (decompression) ratio: {CompressionRatio:P3}");
             Console.WriteLine($"Application run time: {(double)TotalTime.ElapsedMilliseconds / 1000:F3} s");
         }
     }

@@ -11,6 +11,7 @@ namespace GZipTest
         private readonly IBlockDictionary source;
         private readonly IStatistics stats;
         private readonly ISettings settings;
+        private BinaryFormatter formatter = new BinaryFormatter();
 
         public Writer(IBlockDictionary source, IStatistics stats, ISettings settings)
         {
@@ -26,7 +27,6 @@ namespace GZipTest
         public void WriteToStream(Stream destination)
         {
             long counter = 0;
-            BinaryFormatter formatter = new BinaryFormatter();
             while (counter != settings.TotalBlocks)
             {
                 if (source.TryRetrieve(counter, out DataBlock block))
